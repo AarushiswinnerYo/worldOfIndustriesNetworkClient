@@ -1,8 +1,8 @@
 import os
 import socket
 HEADER=64
-PORT=18931
-SERVER="autorack.proxy.rlwy.net"
+PORT=5555
+SERVER="192.168.29.178"
 ADDR=(SERVER, PORT)
 FORMAT='utf-8'
 DISCONNECT_MSG="!disconnect"
