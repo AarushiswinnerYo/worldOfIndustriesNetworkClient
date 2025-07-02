@@ -1,0 +1,22 @@
+if f=="User signed up successfully":
+                print("Signed up!")
+                if os.path.isdir("userprofs"):
+                    os.chdir("userprofs")
+                    with open(f"{s}.prof", "w") as w:
+                        w.write("")
+                else:
+                    os.mkdir("userprofs")
+                    os.chdir("userprofs")
+                    with open(f"{s}.prof", "w") as w:
+                        w.write("")
+                send(f"user-{s}")
+            elif f=="Successfully logged in!":
+                loggedin=True
+                s=s[0]
+                send(f"user-{s}")
+            elif f=="Non-existent":
+                quit()
+            elif f=="Incorrect password":
+                quit()
+            else:
+                print(f)

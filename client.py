@@ -1,23 +1,25 @@
 import os
 import socket
 HEADER=64
-PORT=5555
-SERVER="192.168.29.178"
+PORT=43056
+SERVER="resources-rejected.gl.at.ply.gg"
 ADDR=(SERVER, PORT)
 FORMAT='utf-8'
 DISCONNECT_MSG="!disconnect"
 loggedin=False
-client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def main(msg):
     def send(msg):
         global loggedin
         global s
+        global client
         if msg=="!connect":
+            client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client.connect(ADDR)
             return
         elif msg==DISCONNECT_MSG:
             client.close()
+            print("Disconnected")
         else:
             message=msg.encode(FORMAT)
             msg_length=len(message)
@@ -26,27 +28,5 @@ def main(msg):
             client.send(send_length)
             client.send(message)
             f=client.recv(8192).decode(FORMAT)
-            if f=="User signed up successfully":
-                print("Signed up!")
-                if os.path.isdir("userprofs"):
-                    os.chdir("userprofs")
-                    with open(f"{s}.prof", "w") as w:
-                        w.write("")
-                else:
-                    os.mkdir("userprofs")
-                    os.chdir("userprofs")
-                    with open(f"{s}.prof", "w") as w:
-                        w.write("")
-                send(f"user-{s}")
-            elif f=="Successfully logged in!":
-                loggedin=True
-                s=s[0]
-                send(f"user-{s}")
-            elif f=="Non-existent":
-                quit()
-            elif f=="Incorrect password":
-                quit()
-            else:
-                print(f)
-                return f
+            return f
     return send(msg=msg)
