@@ -1,7 +1,7 @@
 import os
 import socket
 HEADER=64
-PORT=5950
+PORT=5555
 SERVER="192.168.29.178"
 ADDR=(SERVER, PORT)
 FORMAT='utf-8'
@@ -27,6 +27,6 @@ def main(msg):
             send_length+=b' '*(HEADER - len(send_length))
             client.send(send_length)
             client.send(message)
-            f=client.recv(8192).decode(FORMAT)
+            f=client.recv(10000).decode(FORMAT)
             return f
     return send(msg=msg)
