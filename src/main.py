@@ -3,6 +3,7 @@ import client
 from threading import Thread, Event
 import time
 import os
+import ast
 import pickle
 import asyncio
 import defineContent as contentDefiner
@@ -10,6 +11,8 @@ import defineContent as contentDefiner
 DISCONNECT_MSG="!disconnect"
 logged=False
 userName=""
+inventoryList=[]
+inventoryBox=ft.Column()
 grad=ft.LinearGradient(
             begin=ft.alignment.top_center,
             end=ft.alignment.bottom_center,
@@ -47,6 +50,7 @@ def main(page: ft.Page):
     def login(user, passwd):
         global userName
         global logged
+        global inventoryBox
         if os.path.exists("token.pkl") and user=="":
             with open("token.pkl", "rb") as f:
                 tok=pickle.load(f)
@@ -58,13 +62,16 @@ def main(page: ft.Page):
                 user=userName
                 logged=True
                 t.value=f"Hello, {userName}"
-                invetorybox=ft.Column()
-                everything.content=ft.Container(content=invetorybox)
+                inventoryBox=ft.Column()
+                everything.content=ft.Container(content=inventoryBox)
                 everything.alignment=ft.alignment.top_center
                 everything.update()
+                print(invenBox)
                 for i in invenBox.keys():
-                    invetorybox.controls.appen(ft.Text(value=f"{i}: {invenBox[i]}"))
-                invetorybox.update()
+                    inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                inventoryBox.controls=inventoryList
+                inventoryBox.update()
+                everything.update()
                 page.update()
                 t1.start()
         else:
@@ -107,15 +114,34 @@ def main(page: ft.Page):
             print(userName)
             log=client.main(f"user-{userName}")
             s=client.main("show-inven")
-            invenBox=s
+            print(type(s))
+            invenBox=ast.literal_eval(s)
+            print(type(invenBox))
             x=client.main(DISCONNECT_MSG)
+            inventoryList.clear()
+            for i in invenBox.keys():
+                try:
+                    j=i.keys()
+                except:
+                    inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                else:
+                    for x in j:
+                        inventoryList.append(ft.Text(value=f"{x}: {i[x]}"))
+            inventoryBox.controls=inventoryList
+            inventoryBox.update()
+            everything.update()
             page.update()
     async def updateInven(stop_Flag):
         while not stop_Flag.is_set():
-            getInven()
-            await asyncio.sleep(5)
+            if page.window.visible==False:
+                t1.join()
+                stop_Flag.set()
+                break
+            else:
+                getInven()
+                await asyncio.sleep(5)
     async def delete(l):
-        invenBox.values="Closing..."
+        inventoryBox.controls=[ft.Text(value="Closing...")]
         page.update()
         await asyncio.sleep(1)
         page.controls.clear()
