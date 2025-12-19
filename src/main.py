@@ -66,9 +66,14 @@ def main(page: ft.Page):
                 everything.content=ft.Container(content=inventoryBox)
                 everything.alignment=ft.alignment.top_center
                 everything.update()
-                print(invenBox)
                 for i in invenBox.keys():
-                    inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                    try:
+                        j=invenBox[i].keys()
+                    except:
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                    else:
+                        for x in j:
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
                 inventoryBox.controls=inventoryList
                 inventoryBox.update()
                 everything.update()
@@ -86,12 +91,18 @@ def main(page: ft.Page):
                 t.value=f"Hello, {userName}"
                 with open("token.pkl", "wb") as f:
                     pickle.dump(r[1], f)
-                everything.content=ft.Column([
-                    invenBox,
-                    ft.Text(value=f"Hello, {userName}", size=15),
-                    ft.Text(value="You are logged in", size=15),
-                ])
-                everything.alignment=ft.alignment.top_center
+                inventoryBox=ft.Column()
+                for i in invenBox.keys():
+                    try:
+                        j=invenBox[i].keys()
+                    except:
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                    else:
+                        for x in j:
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
+                inventoryBox.controls=inventoryList
+                inventoryBox.update()
+                everything.update()
                 page.update()
                 t1.start()
     async def defineClosedOrOpen(l):
@@ -120,14 +131,21 @@ def main(page: ft.Page):
             x=client.main(DISCONNECT_MSG)
             inventoryList.clear()
             for i in invenBox.keys():
+                print(i)
+                print(type(i))
                 try:
-                    j=i.keys()
+                    j=invenBox[i].keys()
                 except:
-                    inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                    inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
                 else:
+                    inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
                     for x in j:
-                        inventoryList.append(ft.Text(value=f"{x}: {i[x]}"))
+                        inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
             inventoryBox.controls=inventoryList
+            inventoryBox.height=500
+            inventoryBox.width=200
+            inventoryBox.scroll=ft.ScrollMode.AUTO
+            everything.alignment=ft.alignment.top_left
             inventoryBox.update()
             everything.update()
             page.update()
