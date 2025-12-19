@@ -12,7 +12,8 @@ DISCONNECT_MSG="!disconnect"
 logged=False
 userName=""
 inventoryList=[]
-inventoryBox=ft.Column()
+inventoryBox=ft.Container()
+inventoryBoxExp=False
 grad=ft.LinearGradient(
             begin=ft.alignment.top_center,
             end=ft.alignment.bottom_center,
@@ -62,7 +63,7 @@ def main(page: ft.Page):
                 user=userName
                 logged=True
                 t.value=f"Hello, {userName}"
-                inventoryBox=ft.Column()
+                inventoryBox=ft.Container(height=200, width=200)
                 everything.content=ft.Container(content=inventoryBox)
                 everything.alignment=ft.alignment.top_center
                 everything.update()
@@ -96,10 +97,10 @@ def main(page: ft.Page):
                     try:
                         j=invenBox[i].keys()
                     except:
-                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}", overflow=ft.TextOverflow.ELLIPSIS))
                     else:
                         for x in j:
-                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}", overflow=ft.TextOverflow.ELLIPSIS))
                 inventoryBox.controls=inventoryList
                 inventoryBox.update()
                 everything.update()
@@ -116,6 +117,17 @@ def main(page: ft.Page):
         t1.join()
         print("stopped")
         await delete(l)
+    def openInventory():
+        global inventoryBoxExp
+        if not inventoryBoxExp:
+            inventoryBox.width=widthscr
+            inventoryBox.height=600
+            inventoryBox.alignment=ft.alignment.top_center
+            inventoryBoxExp=True
+        else:
+            inventoryBox.width=200
+            inventoryBox.height=200
+            inventoryBoxExp=False
 
     def getInven():
         if logged==False:
@@ -125,14 +137,10 @@ def main(page: ft.Page):
             print(userName)
             log=client.main(f"user-{userName}")
             s=client.main("show-inven")
-            print(type(s))
             invenBox=ast.literal_eval(s)
-            print(type(invenBox))
             x=client.main(DISCONNECT_MSG)
             inventoryList.clear()
             for i in invenBox.keys():
-                print(i)
-                print(type(i))
                 try:
                     j=invenBox[i].keys()
                 except:
@@ -141,12 +149,17 @@ def main(page: ft.Page):
                     inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
                     for x in j:
                         inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
-            inventoryBox.controls=inventoryList
-            inventoryBox.height=500
-            inventoryBox.width=200
+            inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS))
+            inventoryBox.border_radius=5
+            inventoryBox.on_click=lambda s: openInventory()
+            inventoryBox.margin=ft.margin.only(left=10)
+            inventoryBox.padding=ft.padding.all(7.5)
+            inventoryBox.bgcolor=ft.Colors.GREY_900
             inventoryBox.scroll=ft.ScrollMode.AUTO
+            inventoryBox.animate_size=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+            inventoryBox.animate_offset=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+            inventoryBox.adaptive=True
             everything.alignment=ft.alignment.top_left
-            inventoryBox.update()
             everything.update()
             page.update()
     async def updateInven(stop_Flag):
