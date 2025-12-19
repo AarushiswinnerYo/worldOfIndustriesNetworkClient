@@ -14,6 +14,7 @@ userName=""
 inventoryList=[]
 inventoryBox=ft.Container()
 inventoryBoxExp=False
+inventoryRow=ft.Row()
 grad=ft.LinearGradient(
             begin=ft.alignment.top_center,
             end=ft.alignment.bottom_center,
@@ -52,6 +53,7 @@ def main(page: ft.Page):
         global userName
         global logged
         global inventoryBox
+        global inventoryRow
         if os.path.exists("token.pkl") and user=="":
             with open("token.pkl", "rb") as f:
                 tok=pickle.load(f)
@@ -64,17 +66,26 @@ def main(page: ft.Page):
                 logged=True
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200)
-                everything.content=ft.Container(content=inventoryBox)
+                inventoryRow=ft.Row(controls=[inventoryBox],alignment=ft.alignment.top_left)
+                everything.content=inventoryRow
                 everything.alignment=ft.alignment.top_center
                 everything.update()
                 for i in invenBox.keys():
                     try:
                         j=invenBox[i].keys()
                     except:
-                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
+                        inventoryList.append(ft.Container(content=ft.Text(value=f"{i}: {invenBox[i]}"),
+                        margin=ft.margin.symmetric(vertical=0.25),
+                        width=inventoryBox.width,
+                        bgcolor=ft.Colors.PURPLE,
+                        padding=ft.padding.symmetric(vertical=15, horizontal=15)))
                     else:
                         for x in j:
-                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
+                            inventoryList.append(ft.Container(content=ft.Text(value=f"{x}: {invenBox[i][x]}"),
+                            margin=ft.margin.symmetric(vertical=0.25),
+                            width=inventoryBox.width,
+                            bgcolor=ft.Colors.PURPLE,
+                            padding=ft.padding.symmetric(vertical=15, horizontal=15)))
                 inventoryBox.controls=inventoryList
                 inventoryBox.update()
                 everything.update()
@@ -120,11 +131,14 @@ def main(page: ft.Page):
     def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
+            inventoryRow.alignment=ft.alignment.top_center
             inventoryBox.width=widthscr
             inventoryBox.height=600
             inventoryBox.alignment=ft.alignment.top_center
             inventoryBoxExp=True
         else:
+            inventoryRow.alignment=ft.alignment.top_center
+            inventoryBox.offset=ft.Offset(0, y=0)
             inventoryBox.width=200
             inventoryBox.height=200
             inventoryBoxExp=False
@@ -144,11 +158,23 @@ def main(page: ft.Page):
                 try:
                     j=invenBox[i].keys()
                 except:
-                    inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
+                    inventoryList.append(ft.Container(content=ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"),
+                    margin=ft.margin.symmetric(vertical=0.25),
+                    width=inventoryBox.width,
+                    bgcolor=ft.Colors.PURPLE,
+                    padding=ft.padding.symmetric(vertical=15, horizontal=15)))
                 else:
-                    inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
+                    inventoryList.append(ft.Container(content=ft.Text(value=f"{i.capitalize()}:"),
+                    margin=ft.margin.symmetric(vertical=0.25),
+                    width=inventoryBox.width,
+                    bgcolor=ft.Colors.PURPLE,
+                    padding=ft.padding.symmetric(vertical=15, horizontal=15)))
                     for x in j:
-                        inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
+                        inventoryList.append(ft.Container(content=ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"),
+                        margin=ft.margin.symmetric(vertical=0.25),
+                        width=inventoryBox.width,
+                        bgcolor=ft.Colors.PURPLE,
+                        padding=ft.padding.symmetric(vertical=15, horizontal=15)))
             inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS))
             inventoryBox.border_radius=5
             inventoryBox.on_click=lambda s: openInventory()
