@@ -66,7 +66,8 @@ def main(page: ft.Page):
                 logged=True
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200)
-                inventoryRow=ft.Row(controls=[inventoryBox],alignment=ft.alignment.top_left)
+                inventoryRow=ft.Row(controls=[inventoryBox],alignment=ft.alignment.top_center, width=200)
+                inventoryRow.animate_size=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 everything.content=inventoryRow
                 everything.alignment=ft.alignment.top_center
                 everything.update()
@@ -128,17 +129,20 @@ def main(page: ft.Page):
         t1.join()
         print("stopped")
         await delete(l)
-    def openInventory():
+    async def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
-            inventoryRow.alignment=ft.alignment.top_center
+            inventoryRow.width=widthscr
+            inventoryRow.alignment=ft.alignment.top_right
+            await asyncio.sleep(2)
             inventoryBox.width=widthscr
             inventoryBox.height=600
+            inventoryBox.margin=ft.margin.only(left=0)
+            inventoryBox.padding=ft.padding.only(left=0)
             inventoryBox.alignment=ft.alignment.top_center
             inventoryBoxExp=True
         else:
             inventoryRow.alignment=ft.alignment.top_center
-            inventoryBox.offset=ft.Offset(0, y=0)
             inventoryBox.width=200
             inventoryBox.height=200
             inventoryBoxExp=False
@@ -177,7 +181,8 @@ def main(page: ft.Page):
                         padding=ft.padding.symmetric(vertical=15, horizontal=15)))
             inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS))
             inventoryBox.border_radius=5
-            inventoryBox.on_click=lambda s: openInventory()
+            inventoryBox.spacing=0
+            inventoryBox.on_click=lambda s: asyncio.run(openInventory())
             inventoryBox.margin=ft.margin.only(left=10)
             inventoryBox.padding=ft.padding.all(7.5)
             inventoryBox.bgcolor=ft.Colors.GREY_900
