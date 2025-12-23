@@ -13,8 +13,10 @@ logged=False
 userName=""
 inventoryList=[]
 inventoryBox=ft.Container()
+moneyVal=0
+boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0), blur_style=ft.ShadowBlurStyle.NORMAL)
+moneybox=ft.Container()
 inventoryBoxExp=False
-inventoryRow=ft.Row()
 grad=ft.LinearGradient(
             begin=ft.alignment.top_center,
             end=ft.alignment.bottom_center,
@@ -27,10 +29,11 @@ def main(page: ft.Page):
     page.window.gradient=grad
     page.border_radius=ft.border_radius.all(20)
     page.window.spacing=0
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.vertical_alignment = "top"
+    page.horizontal_alignment = "left"
     page.spacing=0
     page.window.opacity=1
+    page.theme=ft.Theme(scrollbar_theme=ft.ScrollbarTheme(thickness=0, thumb_visibility=False))
     page.window.animate_opacity=ft.Animation(1000, ft.AnimationCurve.EASE_OUT)
     page.padding=0
     page.window.draggable=True
@@ -53,7 +56,7 @@ def main(page: ft.Page):
         global userName
         global logged
         global inventoryBox
-        global inventoryRow
+        global moneybox
         if os.path.exists("token.pkl") and user=="":
             with open("token.pkl", "rb") as f:
                 tok=pickle.load(f)
@@ -65,29 +68,21 @@ def main(page: ft.Page):
                 user=userName
                 logged=True
                 t.value=f"Hello, {userName}"
-                inventoryBox=ft.Container(height=200, width=200)
-                inventoryRow=ft.Row(controls=[inventoryBox],alignment=ft.alignment.top_center, width=200)
-                inventoryRow.animate_size=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                everything.content=inventoryRow
-                everything.alignment=ft.alignment.top_center
+                inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
+                moneybox=ft.Container(height=200, width=200, margin=ft.margin.all(10), padding=ft.padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
+                everything.content=ft.Row([inventoryBox, moneybox])
+                everything.alignment=ft.alignment.top_left
                 everything.update()
                 for i in invenBox.keys():
                     try:
                         j=invenBox[i].keys()
                     except:
-                        inventoryList.append(ft.Container(content=ft.Text(value=f"{i}: {invenBox[i]}"),
-                        margin=ft.margin.symmetric(vertical=0.25),
-                        width=inventoryBox.width,
-                        bgcolor=ft.Colors.PURPLE,
-                        padding=ft.padding.symmetric(vertical=15, horizontal=15)))
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
                     else:
                         for x in j:
-                            inventoryList.append(ft.Container(content=ft.Text(value=f"{x}: {invenBox[i][x]}"),
-                            margin=ft.margin.symmetric(vertical=0.25),
-                            width=inventoryBox.width,
-                            bgcolor=ft.Colors.PURPLE,
-                            padding=ft.padding.symmetric(vertical=15, horizontal=15)))
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
                 inventoryBox.controls=inventoryList
+                moneybox.content=ft.Text(value=f"Money: {moneyVal}")
                 inventoryBox.update()
                 everything.update()
                 page.update()
@@ -109,13 +104,15 @@ def main(page: ft.Page):
                     try:
                         j=invenBox[i].keys()
                     except:
-                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}", overflow=ft.TextOverflow.ELLIPSIS))
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}", overflow=ft.TextOverflow.ELLIPSIS, expand=True, width=200))
                     else:
                         for x in j:
-                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}", overflow=ft.TextOverflow.ELLIPSIS))
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}", overflow=ft.TextOverflow.ELLIPSIS, expand=True, width=200))
                 inventoryBox.controls=inventoryList
+                moneybox.content=ft.Text(value=f"Money: {moneyVal}")
                 inventoryBox.update()
                 everything.update()
+                moneybox.update()
                 page.update()
                 t1.start()
     async def defineClosedOrOpen(l):
@@ -129,22 +126,27 @@ def main(page: ft.Page):
         t1.join()
         print("stopped")
         await delete(l)
-    async def openInventory():
+    def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
-            inventoryRow.width=widthscr
-            inventoryRow.alignment=ft.alignment.top_right
-            await asyncio.sleep(2)
-            inventoryBox.width=widthscr
+            getInven()
+            moneybox.opacity=0
+            inventoryBox.width=widthscr-20
             inventoryBox.height=600
-            inventoryBox.margin=ft.margin.only(left=0)
-            inventoryBox.padding=ft.padding.only(left=0)
+            inventoryBox.margin=ft.margin.all(0)
+            inventoryBox.padding=ft.padding.all(0)
+            inventoryBox.shadow=None
             inventoryBox.alignment=ft.alignment.top_center
+            inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=True
         else:
-            inventoryRow.alignment=ft.alignment.top_center
+            getInven()
+            moneybox.opacity=1
             inventoryBox.width=200
             inventoryBox.height=200
+            inventoryBox.shadow=boxShadow
+            inventoryBox.alignment=ft.alignment.top_left
+            inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=False
 
     def getInven():
@@ -152,48 +154,41 @@ def main(page: ft.Page):
             return
         else:
             client.main("!connect")
-            print(userName)
             log=client.main(f"user-{userName}")
             s=client.main("show-inven")
+            m=client.main("show-money")
             invenBox=ast.literal_eval(s)
+            moneyVal=ast.literal_eval(m)
             x=client.main(DISCONNECT_MSG)
             inventoryList.clear()
             for i in invenBox.keys():
                 try:
                     j=invenBox[i].keys()
                 except:
-                    inventoryList.append(ft.Container(content=ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"),
-                    margin=ft.margin.symmetric(vertical=0.25),
-                    width=inventoryBox.width,
-                    bgcolor=ft.Colors.PURPLE,
-                    padding=ft.padding.symmetric(vertical=15, horizontal=15)))
+                    inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
                 else:
-                    inventoryList.append(ft.Container(content=ft.Text(value=f"{i.capitalize()}:"),
-                    margin=ft.margin.symmetric(vertical=0.25),
-                    width=inventoryBox.width,
-                    bgcolor=ft.Colors.PURPLE,
-                    padding=ft.padding.symmetric(vertical=15, horizontal=15)))
+                    inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
                     for x in j:
-                        inventoryList.append(ft.Container(content=ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"),
-                        margin=ft.margin.symmetric(vertical=0.25),
-                        width=inventoryBox.width,
-                        bgcolor=ft.Colors.PURPLE,
-                        padding=ft.padding.symmetric(vertical=15, horizontal=15)))
-            inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS))
+                        inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
+            inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN))
             inventoryBox.border_radius=5
-            inventoryBox.spacing=0
-            inventoryBox.on_click=lambda s: asyncio.run(openInventory())
+            moneybox.border_radius=5
+            inventoryBox.on_click=lambda s: openInventory()
             inventoryBox.margin=ft.margin.only(left=10)
             inventoryBox.padding=ft.padding.all(7.5)
             inventoryBox.bgcolor=ft.Colors.GREY_900
-            inventoryBox.scroll=ft.ScrollMode.AUTO
-            inventoryBox.animate_size=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-            inventoryBox.animate_offset=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+            moneybox.margin=ft.margin.only(left=10)
+            moneybox.padding=ft.padding.all(7.5)
+            inventoryBox.scroll=ft.ScrollMode.HIDDEN
+            inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             inventoryBox.adaptive=True
+            moneybox.content=ft.Column([ft.Text(value=f"Money: {moneyVal}")])
+            moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             everything.alignment=ft.alignment.top_left
+            moneybox.update()
             everything.update()
             page.update()
-    async def updateInven(stop_Flag):
+    def updateInven(stop_Flag):
         while not stop_Flag.is_set():
             if page.window.visible==False:
                 t1.join()
@@ -201,7 +196,7 @@ def main(page: ft.Page):
                 break
             else:
                 getInven()
-                await asyncio.sleep(5)
+                time.sleep(5)
     async def delete(l):
         inventoryBox.controls=[ft.Text(value="Closing...")]
         page.update()
@@ -284,6 +279,6 @@ def main(page: ft.Page):
     )
     page.add(Bg)
     stop_event = Event()
-    t1=Thread(target=asyncio.run, args=(updateInven(stop_event),))
+    t1=Thread(target=updateInven, args=(stop_event,))
 
 ft.app(main)

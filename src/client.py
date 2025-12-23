@@ -19,7 +19,6 @@ def main(msg):
             return
         elif msg==DISCONNECT_MSG:
             client.close()
-            print("Disconnected")
         else:
             message=msg.encode(FORMAT)
             msg_length=len(message)
