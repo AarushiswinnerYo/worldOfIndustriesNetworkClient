@@ -110,7 +110,6 @@ def main(page: ft.Page):
                             inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}", overflow=ft.TextOverflow.ELLIPSIS, expand=True, width=200))
                 inventoryBox.controls=inventoryList
                 moneybox.content=ft.Text(value=f"Money: {moneyVal}")
-                inventoryBox.update()
                 everything.update()
                 moneybox.update()
                 page.update()
