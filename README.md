@@ -1,9 +1,3 @@
-# Flet app
+# World of Industries Client
 
-A simple Flet app.
-
-To run the app:
-
-```
-flet run [app_directory]
-```
+This is the desktop client for my game, World of Industries!
