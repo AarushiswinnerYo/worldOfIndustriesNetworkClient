@@ -13,7 +13,7 @@ logged=False
 userName=""
 inventoryList=[]
 inventoryBox=ft.Container()
-moneyVal=0
+money=0
 boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0), blur_style=ft.ShadowBlurStyle.NORMAL)
 moneybox=ft.Container()
 inventoryBoxExp=False
@@ -60,11 +60,9 @@ def main(page: ft.Page):
         if os.path.exists("token.pkl") and user=="":
             with open("token.pkl", "rb") as f:
                 tok=pickle.load(f)
-            log=client.main("!connect")
-            r=client.main(f"LOGINTOKEN-{tok}-token")
-            r=r.split("!")
-            if r[0]=="Successfully logged in":
-                userName=r[1]
+            r=client.main(f"login", tok)
+            if r["user"]!="Token not found!":
+                userName=r["user"]
                 user=userName
                 logged=True
                 t.value=f"Hello, {userName}"
@@ -82,49 +80,71 @@ def main(page: ft.Page):
                         for x in j:
                             inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
                 inventoryBox.controls=inventoryList
-                moneybox.content=ft.Text(value=f"Money: {moneyVal}")
+                moneybox.content=ft.Text(value=f"Money: {money}")
                 inventoryBox.update()
                 everything.update()
                 page.update()
                 t1.start()
+            elif r["user"]=="Token not found!":
+                def closeTryDialog(x=None):
+                    dia.open=False
+                    page.update()
+                t.value=f"Hello!"
+                dia=ft.AlertDialog(title="Logged out!", content="Your account was logged out! Login again!", actions=[ft.TextButton(text="Login", on_click=lambda x:closeTryDialog())],open=True)
+                everything.content=ft.ResponsiveRow([
+                            ft.Container(content=ft.Column([
+                                test,
+                                Pass,
+                                ft.FloatingActionButton(text="500", on_click=lambda x: changeWidth(500)),
+                                ft.FloatingActionButton(text="Login", on_click=lambda x:login(test.value, Pass.value)),
+                                ft.FloatingActionButton(text="testAnim", on_click=testAnim),
+                                ft.OutlinedButton(text="Check", on_click=lambda x: contentDefiner.checkLog()),
+                            ],
+                            spacing=10,
+                            alignment=ft.alignment.center,
+                            expand=False,
+                        ),
+                        padding=10,
+                        gradient=grad,
+                    )],
+                )
         else:
-            log=client.main("!connect")
-            r=client.main(f"login-{user}-{passwd}")
-            r=r.split("!")
-            if r[0]=="Successfully logged in":
-                logged=True
-                os.environ["loggedWW"] = "TRUE"
-                os.environ["loggedWWT"] = r[1]
+            r=client.main(f"login",username=f"{user}",passwd=f"{passwd}")
+            if r["result"]=="correct!":
                 userName=user
+                user=userName
+                logged=True
                 t.value=f"Hello, {userName}"
-                with open("token.pkl", "wb") as f:
-                    pickle.dump(r[1], f)
-                inventoryBox=ft.Column()
+                inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
+                moneybox=ft.Container(height=200, width=200, margin=ft.margin.all(10), padding=ft.padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
+                everything.content=ft.Row([inventoryBox, moneybox])
+                everything.alignment=ft.alignment.top_left
+                everything.update()
                 for i in invenBox.keys():
                     try:
                         j=invenBox[i].keys()
                     except:
-                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}", overflow=ft.TextOverflow.ELLIPSIS, expand=True, width=200))
+                        inventoryList.append(ft.Text(value=f"{i}: {invenBox[i]}"))
                     else:
                         for x in j:
-                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}", overflow=ft.TextOverflow.ELLIPSIS, expand=True, width=200))
+                            inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
                 inventoryBox.controls=inventoryList
-                moneybox.content=ft.Text(value=f"Money: {moneyVal}")
+                moneybox.content=ft.Text(value=f"Money: {money}")
+                inventoryBox.update()
                 everything.update()
-                moneybox.update()
                 page.update()
                 t1.start()
-    async def defineClosedOrOpen(l):
+    def defineClosedOrOpen(l):
         if t1.is_alive():
-            await closeConn(l)
+            closeConn(l)
         else:
-            await delete(l)
-    async def closeConn(l):
+            delete(l)
+    def closeConn(l):
         logged=False
         stop_event.set()
         t1.join()
         print("stopped")
-        await delete(l)
+        delete(l)
     def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
@@ -152,13 +172,9 @@ def main(page: ft.Page):
         if logged==False:
             return
         else:
-            client.main("!connect")
-            log=client.main(f"user-{userName}")
-            s=client.main("show-inven")
-            m=client.main("show-money")
-            invenBox=ast.literal_eval(s)
-            moneyVal=ast.literal_eval(m)
-            x=client.main(DISCONNECT_MSG)
+            log=client.main(f"info",username=f"{userName}")
+            money=log["info"].pop("money")
+            invenBox=log["info"]
             inventoryList.clear()
             for i in invenBox.keys():
                 try:
@@ -181,7 +197,7 @@ def main(page: ft.Page):
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             inventoryBox.adaptive=True
-            moneybox.content=ft.Column([ft.Text(value=f"Money: {moneyVal}")])
+            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}")])
             moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             everything.alignment=ft.alignment.top_left
             moneybox.update()
@@ -196,28 +212,23 @@ def main(page: ft.Page):
             else:
                 getInven()
                 time.sleep(5)
-    async def delete(l):
+    def delete(l):
         inventoryBox.controls=[ft.Text(value="Closing...")]
         page.update()
-        await asyncio.sleep(1)
         page.controls.clear()
         page.update()
-        await asyncio.sleep(1)
         page.window.opacity=0
         page.update()
         page.window.visible=False
-        await asyncio.sleep(2)
         page.window.destroy()
         page.update()
-        await asyncio.sleep(20)
         exit(1)
     def minimize(l):
         page.window.minimized=True
         page.update()
-    async def testAnim(l):
+    def testAnim(l):
         everything.opacity=0
         everything.update()
-        await asyncio.sleep(1)
         everything.content=ft.FloatingActionButton(text="Login", on_click=lambda x:login(test.value, Pass.value))
         everything.opacity=1
         everything.gradient=grad
@@ -239,7 +250,7 @@ def main(page: ft.Page):
                     ft.Row([ft.TextButton(text="INVENTORY", on_click=lambda x:getInven()),
                     ft.Row(width=10),
                     ft.TextButton(icon=ft.Icons.REMOVE, width=35, height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0)), on_click=lambda x: minimize(x)),
-                    ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: asyncio.run(defineClosedOrOpen(x))),], 
+                    ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: defineClosedOrOpen(x)),], 
                     width=200, spacing=0,
                     alignment=ft.alignment.top_center),
                 ],
