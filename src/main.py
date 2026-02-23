@@ -22,6 +22,7 @@ grad=ft.LinearGradient(
             end=ft.alignment.bottom_center,
             colors=[ft.Colors.BLACK, ft.Colors.BLACK, ft.Colors.PURPLE_ACCENT_700])
 def main(page: ft.Page):
+    global t1
     page.window.width=1280
     page.window.height=720
     page.window.center()
@@ -65,6 +66,8 @@ def main(page: ft.Page):
                 userName=r["user"]
                 user=userName
                 logged=True
+                page.add(topNav)
+                page.add(Bg)
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
                 moneybox=ft.Container(height=200, width=200, margin=ft.margin.all(10), padding=ft.padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
@@ -108,11 +111,15 @@ def main(page: ft.Page):
                         gradient=grad,
                     )],
                 )
+                page.add(topNav)
+                page.add(Bg)
         else:
             r=client.main(f"login",username=f"{user}",passwd=f"{passwd}")
             if r["result"]=="correct!":
                 userName=user
                 user=userName
+                with open("token.pkl", "wb") as f:
+                    pickle.dump(r["token"], f)
                 logged=True
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
@@ -174,6 +181,7 @@ def main(page: ft.Page):
         else:
             log=client.main(f"info",username=f"{userName}")
             money=log["info"].pop("money")
+            group=log['info'].pop("group")
             invenBox=log["info"]
             inventoryList.clear()
             for i in invenBox.keys():
@@ -197,7 +205,7 @@ def main(page: ft.Page):
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             inventoryBox.adaptive=True
-            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}")])
+            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group:{group}")])
             moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             everything.alignment=ft.alignment.top_left
             moneybox.update()
@@ -222,7 +230,10 @@ def main(page: ft.Page):
         page.window.visible=False
         page.window.destroy()
         page.update()
-        exit(1)
+        try:
+            exit(1)
+        except:
+            pass
     def minimize(l):
         page.window.minimized=True
         page.update()
@@ -245,8 +256,9 @@ def main(page: ft.Page):
                 ),
                 padding=15,
                 content=ft.Column([ft.Row([
+                    ft.Image(src="assets/icon.png", width=75, height=45),
                     ft.Column([t], alignment=ft.alignment.top_left, width=500),
-                    ft.Row(width=565),
+                    ft.Row(width=475),
                     ft.Row([ft.TextButton(text="INVENTORY", on_click=lambda x:getInven()),
                     ft.Row(width=10),
                     ft.TextButton(icon=ft.Icons.REMOVE, width=35, height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0)), on_click=lambda x: minimize(x)),
@@ -260,7 +272,6 @@ def main(page: ft.Page):
             )
         ),
     ])
-    page.add(topNav)
     everything=ft.Container(
         content=ft.ResponsiveRow([
             ft.Container(content=ft.Column([
@@ -287,8 +298,13 @@ def main(page: ft.Page):
     Bg=ft.Container(content=everything,
     gradient=grad,
     )
-    page.add(Bg)
     stop_event = Event()
     t1=Thread(target=updateInven, args=(stop_event,))
+    if os.path.exists("token.pkl"):
+        login(user="", passwd="")
+    else:
+        page.add(topNav)
+        page.add(Bg)
+        page.update()
 
 ft.app(main)
