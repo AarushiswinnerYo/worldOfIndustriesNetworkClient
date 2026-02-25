@@ -14,21 +14,23 @@ userName=""
 inventoryList=[]
 inventoryBox=ft.Container()
 money=0
-boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0), blur_style=ft.ShadowBlurStyle.NORMAL)
+boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0))
 moneybox=ft.Container()
 inventoryBoxExp=False
 grad=ft.LinearGradient(
-            begin=ft.alignment.top_center,
-            end=ft.alignment.bottom_center,
+            begin=ft.Alignment.TOP_CENTER,
+            end=ft.Alignment.BOTTOM_CENTER,
             colors=[ft.Colors.BLACK, ft.Colors.BLACK, ft.Colors.PURPLE_ACCENT_700])
 def main(page: ft.Page):
+    bar_width, handle_size = 300, 60
+    max_x = bar_width - handle_size
     global t1
     page.window.width=1280
     page.window.height=720
     page.window.center()
     page.window.frameless=True
     page.window.gradient=grad
-    page.border_radius=ft.border_radius.all(20)
+    page.border_radius=ft.BorderRadius.all(20)
     page.window.spacing=0
     page.vertical_alignment = "top"
     page.horizontal_alignment = "left"
@@ -70,9 +72,9 @@ def main(page: ft.Page):
                 page.add(Bg)
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
-                moneybox=ft.Container(height=200, width=200, margin=ft.margin.all(10), padding=ft.padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
+                moneybox=ft.Container(height=200, width=200, margin=ft.Margin.all(10), padding=ft.Padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
                 everything.content=ft.Row([inventoryBox, moneybox])
-                everything.alignment=ft.alignment.top_left
+                everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
                 for i in invenBox.keys():
                     try:
@@ -104,7 +106,7 @@ def main(page: ft.Page):
                                 ft.OutlinedButton(text="Check", on_click=lambda x: contentDefiner.checkLog()),
                             ],
                             spacing=10,
-                            alignment=ft.alignment.center,
+                            alignment=ft.Alignment.CENTER,
                             expand=False,
                         ),
                         padding=10,
@@ -123,9 +125,9 @@ def main(page: ft.Page):
                 logged=True
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
-                moneybox=ft.Container(height=200, width=200, margin=ft.margin.all(10), padding=ft.padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
+                moneybox=ft.Container(height=200, width=200, margin=ft.Margin.all(10), padding=ft.Padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
                 everything.content=ft.Row([inventoryBox, moneybox])
-                everything.alignment=ft.alignment.top_left
+                everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
                 for i in invenBox.keys():
                     try:
@@ -159,10 +161,10 @@ def main(page: ft.Page):
             moneybox.opacity=0
             inventoryBox.width=widthscr-20
             inventoryBox.height=600
-            inventoryBox.margin=ft.margin.all(0)
-            inventoryBox.padding=ft.padding.all(0)
+            inventoryBox.margin=ft.Margin.all(0)
+            inventoryBox.padding=ft.Padding.all(0)
             inventoryBox.shadow=None
-            inventoryBox.alignment=ft.alignment.top_center
+            inventoryBox.alignment=ft.Alignment.TOP_CENTER
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=True
         else:
@@ -171,7 +173,7 @@ def main(page: ft.Page):
             inventoryBox.width=200
             inventoryBox.height=200
             inventoryBox.shadow=boxShadow
-            inventoryBox.alignment=ft.alignment.top_left
+            inventoryBox.alignment=ft.Alignment.TOP_LEFT
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=False
 
@@ -194,20 +196,20 @@ def main(page: ft.Page):
                     for x in j:
                         inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
             inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN))
-            inventoryBox.border_radius=5
-            moneybox.border_radius=5
+            inventoryBox.BorderRadius=5
+            moneybox.BorderRadius=5
             inventoryBox.on_click=lambda s: openInventory()
-            inventoryBox.margin=ft.margin.only(left=10)
-            inventoryBox.padding=ft.padding.all(7.5)
+            inventoryBox.margin=ft.Margin.only(left=10)
+            inventoryBox.padding=ft.Padding.all(7.5)
             inventoryBox.bgcolor=ft.Colors.GREY_900
-            moneybox.margin=ft.margin.only(left=10)
-            moneybox.padding=ft.padding.all(7.5)
+            moneybox.margin=ft.Margin.only(left=10)
+            moneybox.padding=ft.Padding.all(7.5)
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             inventoryBox.adaptive=True
             moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group:{group}")])
             moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-            everything.alignment=ft.alignment.top_left
+            everything.alignment=ft.Alignment.TOP_LEFT
             moneybox.update()
             everything.update()
             page.update()
@@ -220,6 +222,52 @@ def main(page: ft.Page):
             else:
                 getInven()
                 time.sleep(5)
+    thumb = ft.Container(
+        width=handle_size, height=handle_size,
+        bgcolor=ft.Colors.PURPLE_ACCENT_700, border_radius=handle_size/2,
+        content=ft.Icon(ft.Icons.CHEVRON_RIGHT, color="white"),
+    )
+
+    # We use a GestureDetector and update its 'left' property
+    slider = ft.GestureDetector(
+        content=thumb,
+        left=0,
+        animate_position=ft.Animation(100, ft.AnimationCurve.EASE),
+        on_pan_update=lambda e: handle_move(e),
+        on_pan_end=lambda e: handle_release(e),
+    )
+
+    def handle_move(e: ft.DragUpdateEvent):
+        # VERSION-PROOF DELTA CHECK
+        delta = 0
+        try:
+            if e.delta_x is not None: delta = e.delta_x
+        except AttributeError:
+            try:
+                if e.local_delta.x is not None: delta = e.local_delta.x
+            except AttributeError:
+                if e.primary_delta is not None: delta = e.primary_delta
+
+        # Apply movement
+        new_left = slider.left + delta
+        # Lock strictly inside [0, max_x]
+        slider.left = max(0, min(new_left, max_x))
+        slider.update()
+
+    def handle_release(e: ft.DragEndEvent):
+        # Snap or Confirm
+        slider.animate_position = ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+        
+        if slider.left > max_x * 0.85: # 85% through the bar
+            slider.left = max_x
+            thumb.bgcolor = ft.Colors.GREEN_700
+            thumb.content = ft.Icon(ft.Icons.CHECK, color="white")
+            print("Sold!")
+        else:
+            slider.left = 0 # Smoothly slides back
+            
+        slider.update()
+        thumb.update()
     def delete(l):
         inventoryBox.controls=[ft.Text(value="Closing...")]
         page.update()
@@ -230,10 +278,7 @@ def main(page: ft.Page):
         page.window.visible=False
         page.window.destroy()
         page.update()
-        try:
-            exit(1)
-        except:
-            pass
+        quit(1)
     def minimize(l):
         page.window.minimized=True
         page.update()
@@ -250,21 +295,21 @@ def main(page: ft.Page):
             ft.Container(
                 width=widthscr,
                 gradient=ft.LinearGradient(
-                    begin=ft.alignment.top_center,
-                    end=ft.alignment.bottom_center,
+                    begin=ft.Alignment.TOP_CENTER,
+                    end=ft.Alignment.BOTTOM_CENTER,
                     colors=[ft.Colors.BLACK, ft.Colors.BLACK],
                 ),
                 padding=15,
                 content=ft.Column([ft.Row([
-                    ft.Image(src="assets/icon.png", width=75, height=45),
-                    ft.Column([t], alignment=ft.alignment.top_left, width=500),
+                    ft.Image(src="src/assets/icon.png", width=75, height=45),
+                    ft.Column([t], alignment=ft.Alignment.TOP_LEFT, width=500),
                     ft.Row(width=475),
-                    ft.Row([ft.TextButton(text="INVENTORY", on_click=lambda x:getInven()),
+                    ft.Row([ft.TextButton(content="INVENTORY", on_click=lambda x:getInven()),
                     ft.Row(width=10),
                     ft.TextButton(icon=ft.Icons.REMOVE, width=35, height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0)), on_click=lambda x: minimize(x)),
                     ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: defineClosedOrOpen(x)),], 
                     width=200, spacing=0,
-                    alignment=ft.alignment.top_center),
+                    alignment=ft.Alignment.TOP_CENTER),
                 ],
                 expand=True)
             ],
@@ -277,13 +322,27 @@ def main(page: ft.Page):
             ft.Container(content=ft.Column([
                 test,
                 Pass,
-                ft.FloatingActionButton(text="500", on_click=lambda x: changeWidth(500)),
-                ft.FloatingActionButton(text="Login", on_click=lambda x:login(test.value, Pass.value)),
-                ft.FloatingActionButton(text="testAnim", on_click=testAnim),
-                ft.OutlinedButton(text="Check", on_click=lambda x: contentDefiner.checkLog()),
+                ft.FloatingActionButton(content="500", on_click=lambda x: changeWidth(500)),
+                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value)),
+                ft.FloatingActionButton(content="testAnim", on_click=testAnim),
+                ft.OutlinedButton(content="Check", on_click=lambda x: contentDefiner.checkLog()),
+                ft.Stack([
+            # Track
+            ft.Container(
+                width=bar_width, height=handle_size,
+                bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
+                alignment=ft.Alignment.CENTER,
+                content=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
+            ),
+            slider,
+        ], 
+        width=bar_width, 
+        height=handle_size,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE # Prevents visual "escapes"
+        )
             ],
             spacing=10,
-            alignment=ft.alignment.center,
+            alignment=ft.Alignment.CENTER,
             expand=False,
         ),
         padding=10,
@@ -292,7 +351,7 @@ def main(page: ft.Page):
     ),
     width=widthscr,
     height=page.window.height,
-    alignment=ft.alignment.top_center,
+    alignment=ft.Alignment.TOP_CENTER,
     animate_opacity=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
     )
     Bg=ft.Container(content=everything,
@@ -307,4 +366,4 @@ def main(page: ft.Page):
         page.add(Bg)
         page.update()
 
-ft.app(main)
+ft.run(main=main, assets_dir="assets")

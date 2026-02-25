@@ -1,11 +1,13 @@
 [project]
 name = "World Of Industries"
 version = "0.1.0"
-description = "THIS IS WORLD OF Industries"
+description = "This is World of Industries"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-  "flet==0.25.2"
+  "flet>=0.81.0",
+  "pymongo",
+  "requests"
 ]
 
 
@@ -22,8 +24,8 @@ product = "worldofindustries"
 company = "Aarushiswinner Yo"
 
 # copyright text to display in about app dialogs
-copyright = "Copyright (C) 2024 by Aarushsiwinner"
+copyright = "Copyright (C) 2026 by Aarushsiwinner"
 
 [tool.flet.app]
-path = "/"
+path = "src"
 split_per_abi = true
