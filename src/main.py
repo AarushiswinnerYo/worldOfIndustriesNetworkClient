@@ -45,7 +45,7 @@ def main(page: ft.Page):
     page.update()
     widthscr=page.window.width
     test=ft.TextField(hint_text="Username", width=500)
-    Pass=ft.TextField(hint_text="Password", width=500)
+    Pass=ft.TextField(hint_text="Password", width=500, password=True, can_reveal_password=True)
     t=ft.Text(value=f"Hello, {userName}", size=15)
     rw=ft.Row(spacing=10)
     invenBox={}
@@ -71,8 +71,8 @@ def main(page: ft.Page):
                 page.add(topNav)
                 page.add(Bg)
                 t.value=f"Hello, {userName}"
-                inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow)
-                moneybox=ft.Container(height=200, width=200, margin=ft.Margin.all(10), padding=ft.Padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
+                inventoryBox=ft.Container(height=200, width=200, shadow=boxShadow, border_radius=ft.BorderRadius.all(5))
+                moneybox=ft.Container(height=200, width=200, margin=ft.Margin.all(10), padding=ft.Padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow)
                 everything.content=ft.Row([inventoryBox, moneybox])
                 everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
@@ -158,21 +158,18 @@ def main(page: ft.Page):
         global inventoryBoxExp
         if not inventoryBoxExp:
             getInven()
-            moneybox.opacity=0
             inventoryBox.width=widthscr-20
             inventoryBox.height=600
-            inventoryBox.margin=ft.Margin.all(0)
             inventoryBox.padding=ft.Padding.all(0)
-            inventoryBox.shadow=None
             inventoryBox.alignment=ft.Alignment.TOP_CENTER
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=True
+            moneybox.opacity=0
         else:
             getInven()
             moneybox.opacity=1
             inventoryBox.width=200
             inventoryBox.height=200
-            inventoryBox.shadow=boxShadow
             inventoryBox.alignment=ft.Alignment.TOP_LEFT
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBoxExp=False
@@ -196,8 +193,8 @@ def main(page: ft.Page):
                     for x in j:
                         inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
             inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN))
-            inventoryBox.BorderRadius=5
-            moneybox.BorderRadius=5
+            inventoryBox.border_radius=ft.BorderRadius.all(5)
+            moneybox.border_radius=ft.BorderRadius.all(5)
             inventoryBox.on_click=lambda s: openInventory()
             inventoryBox.margin=ft.Margin.only(left=10)
             inventoryBox.padding=ft.Padding.all(7.5)
@@ -207,7 +204,7 @@ def main(page: ft.Page):
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             inventoryBox.adaptive=True
-            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group:{group}")])
+            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
             moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
             everything.alignment=ft.Alignment.TOP_LEFT
             moneybox.update()
@@ -256,13 +253,20 @@ def main(page: ft.Page):
 
     def handle_release(e: ft.DragEndEvent):
         # Snap or Confirm
-        slider.animate_position = ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+        slider.animate_position = ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
         
-        if slider.left > max_x * 0.85: # 85% through the bar
+        if slider.left > max_x * 0.95 and test.value!="":# 95% through the bar
+            st.alignment=ft.Alignment.CENTER 
             slider.left = max_x
             thumb.bgcolor = ft.Colors.GREEN_700
             thumb.content = ft.Icon(ft.Icons.CHECK, color="white")
-            print("Sold!")
+            txt.value=""
+            track.width=handle_size
+            slider.padding=ft.Padding.all(0)
+            slider.left=bar_width/2.6
+            page.update()
+            asyncio.wait(5)
+            login(test.value, Pass.value)
         else:
             slider.left = 0 # Smoothly slides back
             
@@ -317,6 +321,22 @@ def main(page: ft.Page):
             )
         ),
     ])
+    txt=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
+    track=ft.Container(
+                width=bar_width, height=handle_size,
+                bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
+                alignment=ft.Alignment.CENTER,
+                content=txt,
+                animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
+            )
+    st=ft.Stack([
+            track,
+            slider,
+        ], 
+        width=bar_width, 
+        height=handle_size,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE # Prevents visual "escapes"
+        )
     everything=ft.Container(
         content=ft.ResponsiveRow([
             ft.Container(content=ft.Column([
@@ -326,20 +346,7 @@ def main(page: ft.Page):
                 ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value)),
                 ft.FloatingActionButton(content="testAnim", on_click=testAnim),
                 ft.OutlinedButton(content="Check", on_click=lambda x: contentDefiner.checkLog()),
-                ft.Stack([
-            # Track
-            ft.Container(
-                width=bar_width, height=handle_size,
-                bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
-                alignment=ft.Alignment.CENTER,
-                content=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
-            ),
-            slider,
-        ], 
-        width=bar_width, 
-        height=handle_size,
-        clip_behavior=ft.ClipBehavior.HARD_EDGE # Prevents visual "escapes"
-        )
+                st
             ],
             spacing=10,
             alignment=ft.Alignment.CENTER,

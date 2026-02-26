@@ -2,7 +2,7 @@ import flet as ft
 
 def main(page: ft.Page):
     page.title = "Smooth Slide to Sell"
-    bar_width, handle_size = 300, 60
+    bar_width, handle_size = 300, 100
     max_x = bar_width - handle_size
 
     thumb = ft.Container(
@@ -39,13 +39,18 @@ def main(page: ft.Page):
 
     def handle_release(e: ft.DragEndEvent):
         # Snap or Confirm
-        slider.animate_position = ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+        slider.animate_position = ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
         
-        if slider.left > max_x * 0.95: # 95% through the bar
+        if slider.left > max_x * 0.95:# 95% through the bar
+            st.alignment=ft.Alignment.CENTER 
             slider.left = max_x
             thumb.bgcolor = ft.Colors.GREEN_700
             thumb.content = ft.Icon(ft.Icons.CHECK, color="white")
             txt.value="Sold!"
+            track.width=handle_size
+            slider.padding=ft.Padding.all(0)
+            slider.left=bar_width/2.6
+            page.update()
             print("Sold!")
         else:
             slider.left = 0 # Smoothly slides back
@@ -53,22 +58,24 @@ def main(page: ft.Page):
         slider.update()
         thumb.update()
     txt=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
-
-    page.add(
-        ft.Stack([
-            # Track
-            ft.Container(
+    track=ft.Container(
                 width=bar_width, height=handle_size,
                 bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
                 alignment=ft.Alignment.CENTER,
-                content=txt
-            ),
+                content=txt,
+                animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
+            )
+    st=ft.Stack([
+            track,
             slider,
         ], 
         width=bar_width, 
         height=handle_size,
         clip_behavior=ft.ClipBehavior.HARD_EDGE # Prevents visual "escapes"
         )
+    page.add(
+        st
     )
 
-ft.run(targe=main, assets_dir="assets")
+ft.run(main=main, assets_dir="assets")
+
