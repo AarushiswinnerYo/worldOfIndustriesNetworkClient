@@ -12,11 +12,15 @@ DISCONNECT_MSG="!disconnect"
 logged=False
 userName=""
 inventoryList=[]
+itemContainers={}
 inventoryBox=ft.Container()
 money=0
+itemExpandedName=""
 boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0))
 moneybox=ft.Container()
 inventoryBoxExp=False
+inventoryExpRow=ft.Row
+itemExpanded=False
 grad=ft.LinearGradient(
             begin=ft.Alignment.TOP_CENTER,
             end=ft.Alignment.BOTTOM_CENTER,
@@ -27,7 +31,6 @@ def main(page: ft.Page):
     global t1
     page.window.width=1280
     page.window.height=720
-    page.window.center()
     page.window.frameless=True
     page.window.gradient=grad
     page.border_radius=ft.BorderRadius.all(20)
@@ -157,59 +160,199 @@ def main(page: ft.Page):
     def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
+            inventoryBoxExp=True
             getInven()
             inventoryBox.width=widthscr-20
             inventoryBox.height=600
             inventoryBox.padding=ft.Padding.all(0)
             inventoryBox.alignment=ft.Alignment.TOP_CENTER
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
-            inventoryBoxExp=True
             moneybox.opacity=0
+            getInven()
         else:
+            inventoryBoxExp=False
             getInven()
             moneybox.opacity=1
             inventoryBox.width=200
             inventoryBox.height=200
             inventoryBox.alignment=ft.Alignment.TOP_LEFT
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
-            inventoryBoxExp=False
+    async def handle_scroll(e: ft.ScrollEvent):
+        await inventoryExpRow.scroll_to(delta=e.scroll_delta.y*2, duration=100)
+        inventoryExpRow.update()
+    def hoverEventContainer(e):
+        e.control.bgcolor=ft.Colors.GREY_700 if e.data else ft.Colors.GREY_800
+        e.control.update()
+    def itemExpand(e):
+        global itemExpanded
+        global itemExpandedName
+        if not itemExpanded:
+            itemExpanded=True
+            e.control.animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+            inventoryList.clear()
+            getInven(item=e.control)
+            e.control.on_hover=None
+            e.control.bgcolor=ft.Colors.GREY_800
+            inventoryBox.on_click=None
+            itemExpandedName=e.control
+            e.control.width=widthscr-50
+            e.control.alignment=ft.Alignment.TOP_CENTER
+            e.control.height=550
+            e.control.update()
+            getInven(item=e.control)
+            print(f"Item Clicked: {e.control}")
+            page.update()
+        else:
+            inventoryBox.on_click=lambda s: openInventory()
+            e.control.width=200
+            e.control.height=200
+            itemExpanded=False
+            e.control.update()
+            getInven()
 
-    def getInven():
+    def getInven(item=None):
         if logged==False:
             return
         else:
-            log=client.main(f"info",username=f"{userName}")
-            money=log["info"].pop("money")
-            group=log['info'].pop("group")
-            invenBox=log["info"]
-            inventoryList.clear()
-            for i in invenBox.keys():
-                try:
-                    j=invenBox[i].keys()
-                except:
-                    inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
-                else:
-                    inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
-                    for x in j:
-                        inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
-            inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN))
-            inventoryBox.border_radius=ft.BorderRadius.all(5)
-            moneybox.border_radius=ft.BorderRadius.all(5)
-            inventoryBox.on_click=lambda s: openInventory()
-            inventoryBox.margin=ft.Margin.only(left=10)
-            inventoryBox.padding=ft.Padding.all(7.5)
-            inventoryBox.bgcolor=ft.Colors.GREY_900
-            moneybox.margin=ft.Margin.only(left=10)
-            moneybox.padding=ft.Padding.all(7.5)
-            inventoryBox.scroll=ft.ScrollMode.HIDDEN
-            inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-            inventoryBox.adaptive=True
-            moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
-            moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-            everything.alignment=ft.Alignment.TOP_LEFT
-            moneybox.update()
-            everything.update()
-            page.update()
+            if not inventoryBoxExp:
+                log=client.main(f"info",username=f"{userName}")
+                money=log["info"].pop("money")
+                group=log['info'].pop("group")
+                invenBox=log["info"]
+                inventoryList.clear()
+                for i in invenBox.keys():
+                    try:
+                        j=invenBox[i].keys()
+                    except:
+                        inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
+                    else:
+                        inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
+                        for x in j:
+                            inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
+                inventoryBox.content=(ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN))
+                inventoryBox.border_radius=ft.BorderRadius.all(5)
+                moneybox.border_radius=ft.BorderRadius.all(5)
+                inventoryBox.on_click=lambda s: openInventory()
+                inventoryBox.margin=ft.Margin.only(left=10)
+                inventoryBox.padding=ft.Padding.all(7.5)
+                inventoryBox.bgcolor=ft.Colors.GREY_900
+                moneybox.margin=ft.Margin.only(left=10)
+                moneybox.padding=ft.Padding.all(7.5)
+                inventoryBox.scroll=ft.ScrollMode.HIDDEN
+                inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                inventoryBox.adaptive=True
+                moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
+                moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                everything.alignment=ft.Alignment.TOP_LEFT
+                everything.update()
+                moneybox.update()
+                page.update()
+            elif inventoryBoxExp and not itemExpanded:
+                global inventoryExpRow
+                log=client.main(f"info",username=f"{userName}")
+                money=log["info"].pop("money")
+                group=log['info'].pop("group")
+                prices=client.main("prices")
+                invenBox=log["info"]
+                inventoryList.clear()
+                for i in invenBox.keys():
+                    try:
+                        j=invenBox[i].keys()
+                    except:
+                        itemContainers[i]=ft.Container(content=ft.Column(controls=[
+                            ft.Text(value=f"{i.capitalize()}: {invenBox[i]}", text_align=ft.Alignment.CENTER),
+                            ft.Text(value=f"Buy Price: {prices[i]}", text_align=ft.Alignment.CENTER),
+                            ft.Text(value=f"Sell Price: {prices[i]}", text_align=ft.Alignment.CENTER)
+                            ]),
+                            bgcolor=ft.Colors.GREY_800,
+                            border_radius=ft.BorderRadius.all(15), 
+                            height=200, width=200, 
+                            alignment=ft.Alignment.CENTER, 
+                            padding=ft.Padding.all(10), 
+                            on_hover=hoverEventContainer, 
+                            on_click=itemExpand,
+                            animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT))
+                        inventoryList.append(itemContainers[i])
+                    else:
+                        itemContainers[i]={}
+                        for x in j:
+                            itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
+                                ft.Text(value=f"{i.capitalize()}:", text_align=ft.Alignment.CENTER),
+                                ft.Text(value=f"{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER),
+                                ft.Text(value=f"Buy Price: {prices[i][x]}", text_align=ft.Alignment.CENTER),
+                                ft.Text(value=f"Sell Price: {prices[i][x]}", text_align=ft.Alignment.CENTER)]),
+                                bgcolor=ft.Colors.GREY_800,
+                                border_radius=ft.BorderRadius.all(15), 
+                                height=200, 
+                                width=200, 
+                                alignment=ft.Alignment.CENTER, 
+                                padding=ft.Padding.all(10), 
+                                on_hover=hoverEventContainer, 
+                                on_click=itemExpand,
+                                animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT))
+                            inventoryList.append(itemContainers[i][x])
+                inventoryExpRow=ft.Row(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS)
+                inventoryBox.content=ft.GestureDetector(content=inventoryExpRow, on_scroll=handle_scroll)
+                inventoryBox.border_radius=ft.BorderRadius.all(5)
+                moneybox.border_radius=ft.BorderRadius.all(5)
+                inventoryBox.on_click=lambda s: openInventory()
+                inventoryBox.margin=ft.Margin.only(left=10)
+                inventoryBox.padding=ft.Padding.all(7.5)
+                inventoryBox.bgcolor=ft.Colors.GREY_900
+                inventoryBox.alignment=ft.Alignment.CENTER
+                moneybox.margin=ft.Margin.only(left=10)
+                moneybox.padding=ft.Padding.all(7.5)
+                inventoryBox.scroll=ft.ScrollMode.HIDDEN
+                inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                inventoryBox.adaptive=True
+                moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
+                moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                everything.alignment=ft.Alignment.TOP_LEFT
+                everything.update()
+                moneybox.update()
+                page.update()
+            elif inventoryBoxExp and itemExpanded:
+                log=client.main(f"info",username=f"{userName}")
+                money=log["info"].pop("money")
+                group=log['info'].pop("group")
+                prices=client.main("prices")
+                invenBox=log["info"]
+                inventoryBox.content=ft.Container(content=item)
+                for d in itemContainers.keys():
+                    try:
+                        h=itemContainers[d].keys()
+                    except:
+                        if itemContainers[d]==item:
+                            item.content=ft.Column(controls=[
+                            ft.Text(value=f"{d.capitalize()}: {invenBox[d]}", text_align=ft.Alignment.CENTER),
+                            ft.Text(value=f"Buy Price: {prices[d]}", text_align=ft.Alignment.CENTER),
+                            ft.Text(value=f"Sell Price: {prices[d]}", text_align=ft.Alignment.CENTER)
+                            ], 
+                            alignment=ft.Alignment.CENTER,
+                            width=widthscr-50)
+                            itemContainers[d]=item
+                        else:
+                            continue
+                    else:
+                        for u in h:
+                            if itemContainers[d][u]==item:
+                                item.content=ft.Column(controls=[
+                                ft.Text(value=f"{d.capitalize()}:"),
+                                ft.Text(value=f"{u.capitalize()}: {invenBox[d][u]}", text_align=ft.Alignment.CENTER),
+                                ft.Text(value=f"Buy Price: {prices[d][u]}", text_align=ft.Alignment.CENTER),
+                                ft.Text(value=f"Sell Price: {prices[d][u]}", text_align=ft.Alignment.CENTER)], 
+                                alignment=ft.Alignment.CENTER,
+                                width=widthscr-50)
+                                itemContainers[d][u]=item
+                            else:
+                                continue
+                print(f"Item Received: {item}")
+                item.update()
+                inventoryBox.update()
+                everything.update()
+                moneybox.update()
+                page.update()
+
     def updateInven(stop_Flag):
         while not stop_Flag.is_set():
             if page.window.visible==False:
@@ -217,7 +360,10 @@ def main(page: ft.Page):
                 stop_Flag.set()
                 break
             else:
-                getInven()
+                if itemExpanded:
+                    getInven(itemExpandedName)
+                elif not itemExpanded:
+                    getInven()
                 time.sleep(5)
     thumb = ft.Container(
         width=handle_size, height=handle_size,
@@ -265,7 +411,6 @@ def main(page: ft.Page):
             slider.padding=ft.Padding.all(0)
             slider.left=bar_width/2.6
             page.update()
-            asyncio.wait(5)
             login(test.value, Pass.value)
         else:
             slider.left = 0 # Smoothly slides back
@@ -308,7 +453,7 @@ def main(page: ft.Page):
                     ft.Image(src="src/assets/icon.png", width=75, height=45),
                     ft.Column([t], alignment=ft.Alignment.TOP_LEFT, width=500),
                     ft.Row(width=475),
-                    ft.Row([ft.TextButton(content="INVENTORY", on_click=lambda x:getInven()),
+                    ft.Row([ft.TextButton(content="INVENTORY", on_click=lambda x:updateInven(stop_event)),
                     ft.Row(width=10),
                     ft.TextButton(icon=ft.Icons.REMOVE, width=35, height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0)), on_click=lambda x: minimize(x)),
                     ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: defineClosedOrOpen(x)),], 

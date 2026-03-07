@@ -1,5 +1,5 @@
 import flet as ft
-
+import math
 def main(page: ft.Page):
     page.title = "Smooth Slide to Sell"
     bar_width, handle_size = 300, 100
@@ -35,21 +35,29 @@ def main(page: ft.Page):
         new_left = slider.left + delta
         # Lock strictly inside [0, max_x]
         slider.left = max(0, min(new_left, max_x))
+        slider.rotate=ft.Rotate(angle=math.radians(slider.left*-270/bar_width))
         slider.update()
 
     def handle_release(e: ft.DragEndEvent):
         # Snap or Confirm
         slider.animate_position = ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
+        slider.animate_size=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
         
         if slider.left > max_x * 0.95:# 95% through the bar
+            slider.rotate=ft.Rotate(math.radians(0))
             st.alignment=ft.Alignment.CENTER 
             slider.left = max_x
             thumb.bgcolor = ft.Colors.GREEN_700
             thumb.content = ft.Icon(ft.Icons.CHECK, color="white")
+            slider.height=0
+            slider.width=0
+            track.bgcolor=ft.Colors.GREEN_700
             txt.value="Sold!"
             track.width=handle_size
             slider.padding=ft.Padding.all(0)
             slider.left=bar_width/2.6
+            slider.update()
+            thumb.update()
             page.update()
             print("Sold!")
         else:
@@ -57,7 +65,7 @@ def main(page: ft.Page):
             
         slider.update()
         thumb.update()
-    txt=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
+    txt=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE, size=15)
     track=ft.Container(
                 width=bar_width, height=handle_size,
                 bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
