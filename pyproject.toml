@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
   "flet>=0.81.0",
-  "pymongo",
   "requests"
 ]
 

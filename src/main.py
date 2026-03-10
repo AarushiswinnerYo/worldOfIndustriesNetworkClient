@@ -188,16 +188,19 @@ def main(page: ft.Page):
         global itemExpandedName
         if not itemExpanded:
             itemExpanded=True
-            e.control.animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
-            inventoryList.clear()
-            getInven(item=e.control)
+            e.control.adaptive=True
+            page.update()
+            e.control.update()
             e.control.on_hover=None
             e.control.bgcolor=ft.Colors.GREY_800
             inventoryBox.on_click=None
             itemExpandedName=e.control
-            e.control.width=widthscr-50
-            e.control.alignment=ft.Alignment.TOP_CENTER
-            e.control.height=550
+            itemExpandedName.text_align=ft.Alignment.CENTER
+            itemExpandedName.alignment=ft.Alignment.TOP_CENTER
+            itemExpandedName.width=widthscr-50
+            itemExpandedName.height=550
+            itemExpandedName.update()
+            everything.update()
             e.control.update()
             getInven(item=e.control)
             print(f"Item Clicked: {e.control}")
@@ -260,9 +263,10 @@ def main(page: ft.Page):
                         j=invenBox[i].keys()
                     except:
                         itemContainers[i]=ft.Container(content=ft.Column(controls=[
+                            ft.Text(),
                             ft.Text(value=f"{i.capitalize()}: {invenBox[i]}", text_align=ft.Alignment.CENTER),
-                            ft.Text(value=f"Buy Price: {prices[i]}", text_align=ft.Alignment.CENTER),
-                            ft.Text(value=f"Sell Price: {prices[i]}", text_align=ft.Alignment.CENTER)
+                            ft.Text(value=f"Buy Price: {prices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED_700),
+                            ft.Text(value=f"Sell Price: {prices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN_700)
                             ]),
                             bgcolor=ft.Colors.GREY_800,
                             border_radius=ft.BorderRadius.all(15), 
@@ -279,8 +283,8 @@ def main(page: ft.Page):
                             itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
                                 ft.Text(value=f"{i.capitalize()}:", text_align=ft.Alignment.CENTER),
                                 ft.Text(value=f"{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER),
-                                ft.Text(value=f"Buy Price: {prices[i][x]}", text_align=ft.Alignment.CENTER),
-                                ft.Text(value=f"Sell Price: {prices[i][x]}", text_align=ft.Alignment.CENTER)]),
+                                ft.Text(value=f"Buy Price: {prices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED_700),
+                                ft.Text(value=f"Sell Price: {prices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN_700)]),
                                 bgcolor=ft.Colors.GREY_800,
                                 border_radius=ft.BorderRadius.all(15), 
                                 height=200, 
@@ -450,7 +454,7 @@ def main(page: ft.Page):
                 ),
                 padding=15,
                 content=ft.Column([ft.Row([
-                    ft.Image(src="src/assets/icon.png", width=75, height=45),
+                    ft.Image(src="/icon.png", width=75, height=45),
                     ft.Column([t], alignment=ft.Alignment.TOP_LEFT, width=500),
                     ft.Row(width=475),
                     ft.Row([ft.TextButton(content="INVENTORY", on_click=lambda x:updateInven(stop_event)),
