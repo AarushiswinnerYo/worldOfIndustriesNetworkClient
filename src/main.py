@@ -74,8 +74,8 @@ def main(page: ft.Page):
                 page.add(topNav)
                 page.add(Bg)
                 t.value=f"Hello, {userName}"
-                inventoryBox=ft.Container(height=300, width=300, shadow=boxShadow, border_radius=ft.BorderRadius.all(25))
-                moneybox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow)
+                inventoryBox=ft.Container(height=300, width=300, shadow=boxShadow, border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), alignment=ft.Alignment(-0.9,-0.8))
+                moneybox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow, alignment=ft.Alignment(-0.9,-0.8))
                 everything.content=ft.Row([inventoryBox, moneybox])
                 everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
@@ -246,7 +246,7 @@ def main(page: ft.Page):
                 inventoryBox.adaptive=True
                 moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
                 moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                everything.alignment=ft.Alignment.TOP_LEFT
+                everything.alignment=ft.Alignment(-0.9,-0.9)
                 everything.update()
                 moneybox.update()
                 page.update()
@@ -287,8 +287,7 @@ def main(page: ft.Page):
                         for x in j:
                             itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
                                 ft.Container(content=ft.Image(src="icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
-                                ft.Text(value=f"{i.capitalize()}: {totalcount}", text_align=ft.Alignment.CENTER, size=13),
-                                ft.Text(value=f"{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER, size=13),
+                                ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER, size=13),
                                 ft.Text(value=f"Buy Price: {buyPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
                                 ft.Text(value=f"Sell Price: {sellPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
                                 bgcolor=ft.Colors.GREY_800,
@@ -336,7 +335,7 @@ def main(page: ft.Page):
                     except:
                         if itemContainers[d]==item:
                             item.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
+                                ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
                                 ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{invenBox[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
                                 ft.Container(),
                                 ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
@@ -481,32 +480,12 @@ def main(page: ft.Page):
             )
         ),
     ])
-    txt=ft.Text("SLIDE TO SELL", weight="bold", color=ft.Colors.WHITE)
-    track=ft.Container(
-                width=bar_width, height=handle_size,
-                bgcolor=ft.Colors.BLACK_45, border_radius=handle_size/2,
-                alignment=ft.Alignment.CENTER,
-                content=txt,
-                animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
-            )
-    st=ft.Stack([
-            track,
-            slider,
-        ], 
-        width=bar_width, 
-        height=handle_size,
-        clip_behavior=ft.ClipBehavior.HARD_EDGE # Prevents visual "escapes"
-        )
     everything=ft.Container(
         content=ft.ResponsiveRow([
             ft.Container(content=ft.Column([
                 test,
                 Pass,
-                ft.FloatingActionButton(content="500", on_click=lambda x: changeWidth(500)),
-                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value)),
-                ft.FloatingActionButton(content="testAnim", on_click=testAnim),
-                ft.OutlinedButton(content="Check", on_click=lambda x: contentDefiner.checkLog()),
-                st
+                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value), bgcolor=ft.Colors.DEEP_PURPLE_ACCENT, width=150, height=50),
             ],
             spacing=10,
             alignment=ft.Alignment.CENTER,
