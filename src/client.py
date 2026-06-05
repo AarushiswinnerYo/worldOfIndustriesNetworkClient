@@ -15,6 +15,10 @@ def main(msg, token=None, username=None, passwd=None, amount=None, materialName=
         with open("token.pkl", "rb") as tk:
             token=pickle.load(tk)
         r=requests.post(f"{apiUrl}/buy?token={token}&amount={amount}&passwd={passwd}&material_name={materialName}&material_subtype={materialSubtype}")
+    if msg=="sell":
+        with open("token.pkl", "rb") as tk:
+            token=pickle.load(tk)
+        r=requests.post(f"{apiUrl}/sell?token={token}&amount={amount}&passwd={passwd}&material_name={materialName}&material_subtype={materialSubtype}")
     if msg=="buyPrices":
         r=requests.post(f"{apiUrl}/buyPrices")
     if msg=="sellPrices":

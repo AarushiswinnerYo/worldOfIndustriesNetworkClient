@@ -16,6 +16,7 @@ itemContainers={}
 inventoryBox=ft.Container()
 money=0
 itemExpandedName=""
+recipeContent={}
 boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0))
 moneybox=ft.Container()
 inventoryBoxExp=False
@@ -86,7 +87,8 @@ def main(page: ft.Page):
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=300, width=300, shadow=boxShadow, border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), alignment=ft.Alignment(-0.9,-0.8))
                 moneybox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow, alignment=ft.Alignment(-0.9,-0.8))
-                everything.content=ft.Row([inventoryBox, moneybox])
+                recipebox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow, alignment=ft.Alignment(-0.9,-0.8))
+                everything.content=ft.Row([inventoryBox, moneybox, recipebox])
                 everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
                 for i in invenBox.keys():
@@ -99,6 +101,7 @@ def main(page: ft.Page):
                             inventoryList.append(ft.Text(value=f"{x}: {invenBox[i][x]}"))
                 inventoryBox.controls=inventoryList
                 moneybox.content=ft.Text(value=f"Money: {money}")
+                recipebox.content=ft.Text(value=f"{recipeContent}")
                 inventoryBox.update()
                 everything.update()
                 page.update()
@@ -108,15 +111,12 @@ def main(page: ft.Page):
                     dia.open=False
                     page.update()
                 t.value=f"Hello!"
-                dia=ft.AlertDialog(title="Logged out!", content=ft.Text("Your account was logged out! Login again!"), actions=[ft.TextButton(text="Login", on_click=lambda x:closeTryDialog())],open=True)
+                dia=ft.AlertDialog(title="Logged out!", content=ft.Text("Your account was logged out! Login again!"))
                 everything.content=ft.ResponsiveRow([
                             ft.Container(content=ft.Column([
                                 test,
                                 Pass,
-                                ft.FloatingActionButton(text="500", on_click=lambda x: changeWidth(500)),
-                                ft.FloatingActionButton(text="Login", on_click=lambda x:login(test.value, Pass.value)),
-                                ft.FloatingActionButton(text="testAnim", on_click=testAnim),
-                                ft.OutlinedButton(text="Check", on_click=lambda x: contentDefiner.checkLog()),
+                                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value)),
                             ],
                             spacing=10,
                             alignment=ft.Alignment.CENTER,
@@ -128,6 +128,7 @@ def main(page: ft.Page):
                 )
                 page.add(topNav)
                 page.add(Bg)
+                page.show_dialog(dia)
         else:
             r=client.main(f"login",username=f"{user}",passwd=f"{passwd}")
             if r["result"]=="correct!":
@@ -138,8 +139,9 @@ def main(page: ft.Page):
                 logged=True
                 t.value=f"Hello, {userName}"
                 inventoryBox=ft.Container(height=300, width=300, shadow=boxShadow)
-                moneybox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(15), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT))
-                everything.content=ft.Row([inventoryBox, moneybox])
+                moneybox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow, alignment=ft.Alignment(-0.9,-0.8))
+                recipebox=ft.Container(height=300, width=300, margin=ft.Margin.all(10), padding=ft.Padding.all(25), border_radius=ft.BorderRadius.all(25), bgcolor=ft.Colors.GREY_900, animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT), shadow=boxShadow, alignment=ft.Alignment(-0.9,-0.8))
+                everything.content=ft.Row([inventoryBox, moneybox, recipebox])
                 everything.alignment=ft.Alignment.TOP_LEFT
                 everything.update()
                 for i in invenBox.keys():
@@ -197,14 +199,13 @@ def main(page: ft.Page):
     def hoverEventContainer(e):
         e.control.bgcolor=ft.Colors.GREY_700 if e.data else ft.Colors.GREY_800
         e.control.update()
+        page.update()
     def itemExpand(e):
         global itemExpanded
         global itemExpandedName
         if not itemExpanded:
             itemExpanded=True
             e.control.adaptive=True
-            page.update()
-            e.control.update()
             e.control.on_hover=None
             e.control.bgcolor=ft.Colors.GREY_800
             inventoryBox.on_click=None
@@ -216,7 +217,7 @@ def main(page: ft.Page):
             itemExpandedName.update()
             everything.update()
             e.control.update()
-            getInven(item=e.control)
+            getInven(itemCont=e.control)
             print(f"Item Clicked: {e.control}")
             page.update()
         else:
@@ -226,8 +227,81 @@ def main(page: ft.Page):
             itemExpanded=False
             e.control.update()
             getInven()
+            page.update()
 
-    def getInven(item=None):
+    def getInven(itemCont=None):
+        def sell(itemName, amount, password, itemsub=""):
+            loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
+            selldia.content=ft.Container(content=ft.Row(controls=[ft.Text("Selling..."), loadingAnim], height=50))
+            q=client.main(msg="sell", passwd=password, amount=amount, materialName=itemName, materialSubtype=itemsub)
+            page.update()
+            if q["result"]=="Success":
+                selldia.content=ft.Text("Sold Successfully!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
+            elif q["result"]=="Not Sufficient Quantity":
+                selldia.content=ft.Text("Insufficient Quantity!\nPress anywhere to dismiss",color=ft.Colors.BLACK)
+            elif q["result"]=="Incorrect Password":
+                selldia.content=ft.Text("Password Incorrect!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
+            page.update()
+        def sellfunc(itemName, itemsub=""):
+            global selldia
+            if itemsub=="":
+                amountField = ft.TextField(
+                    label="Amount",
+                    value=0,
+                    keyboard_type=ft.KeyboardType.NUMBER,  # Opens number pad on mobile
+                    input_filter=ft.InputFilter(
+                        allow=True, 
+                        regex_string=r"^[0-9]*$",            # Allows only digits
+                        replacement_string=""
+                    )
+                )
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
+                sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value), bgcolor=ft.Colors.GREEN, height=50, width=100)
+                selldia=ft.AlertDialog(
+                    title=ft.Text(f"Selling {itemName.capitalize()}"),
+                    content=ft.Column(
+                        controls=[
+                            moneyCounter,
+                            amountField,
+                            password,
+                            sellButton
+                        ],
+                        height=200
+                    ),
+                    on_dismiss=lambda e:getInven(itemExpandedName)
+                )
+                page.show_dialog(selldia)
+                page.update()
+            else:
+                amountField = ft.TextField(
+                    label="Amount",
+                    value=0,
+                    keyboard_type=ft.KeyboardType.NUMBER,  # Opens number pad on mobile
+                    input_filter=ft.InputFilter(
+                        allow=True, 
+                        regex_string=r"^[0-9]*$",            # Allows only digits
+                        replacement_string=""
+                    )
+                )
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
+                sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.GREEN, height=50, width=100)
+                selldia=ft.AlertDialog(
+                    title=ft.Text(f"Selling {itemName.capitalize()}: {itemsub.capitalize()}"),
+                    content=ft.Column(
+                        controls=[
+                            moneyCounter,
+                            amountField,
+                            password,
+                            sellButton
+                        ],
+                        height=200
+                    ),
+                    on_dismiss=lambda e:getInven(itemExpandedName)
+                )
+                page.show_dialog(selldia)
+                page.update()
         def buy(itemName, amount, password, itemsub=""):
             loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
             buydia.content=ft.Container(content=ft.Row(controls=[ft.Text("Purchasing..."), loadingAnim], height=50))
@@ -253,17 +327,21 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 buyButton=ft.FloatingActionButton(content="Buy", on_click=lambda x:buy(itemName, amountField.value, password.value), bgcolor=ft.Colors.RED, height=50, width=100)
                 buydia=ft.AlertDialog(
                     title=ft.Text(f"Buying {itemName.capitalize()}"),
                     content=ft.Column(
                         controls=[
+                            moneyCounter,
                             amountField,
                             password,
                             buyButton
-                        ]
-                    )
+                        ],
+                        height=200
+                    ),
+                    on_dismiss=lambda e:getInven(itemExpandedName)
                 )
                 page.show_dialog(buydia)
             else:
@@ -277,17 +355,21 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 buyButton=ft.FloatingActionButton(content="Buy", on_click=lambda x:buy(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.RED, height=50, width=100)
                 buydia=ft.AlertDialog(
                     title=ft.Text(f"Buying {itemName.capitalize()}: {itemsub.capitalize()}"),
                     content=ft.Column(
                         controls=[
+                            moneyCounter,
                             amountField,
                             password,
                             buyButton
-                        ]
-                    )
+                        ],
+                        height=200
+                    ),
+                    on_dismiss=lambda e:getInven(itemExpandedName)
                 )
                 page.show_dialog(buydia)
         if logged==False:
@@ -324,10 +406,9 @@ def main(page: ft.Page):
                 moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
                 moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 everything.alignment=ft.Alignment(-0.9,-0.9)
-                everything.update()
-                moneybox.update()
                 page.update()
             elif inventoryBoxExp and not itemExpanded:
+                print("Item Not Expanded")
                 global inventoryExpRow
                 log=client.main(f"info")
                 money=log["info"].pop("money")
@@ -399,48 +480,59 @@ def main(page: ft.Page):
                 moneybox.update()
                 page.update()
             elif inventoryBoxExp and itemExpanded:
+                global moneyBal
+                print("Item Expanded")
                 log=client.main(f"info")
-                money=log["info"].pop("money")
+                moneyBal=log["info"].pop("money")
                 group=log['info'].pop("group")
                 buyPrices=client.main("buyPrices")
                 sellPrices=client.main("sellPrices")
                 invenBox=log["info"]
-                inventoryBox.content=ft.Container(content=item)
+                inventoryBox.content=ft.Container(content=itemCont)
+                print(f"To Find: {itemCont}")
                 for d in itemContainers.keys():
                     try:
                         h=itemContainers[d].keys()
                     except:
-                        if itemContainers[d]==item:
+                        if itemContainers[d]==itemCont:
                             itName=d
-                            item.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
+                            print(f"ItemExpandedName: {itName}, ID: {itemContainers[d]}")
+                            itemCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
                                 ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
                                 ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{invenBox[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
                                 ft.Container(),
                                 ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
                                 ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
+                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
                                 alignment=ft.MainAxisAlignment.CENTER), width=250, height=500)
-                            item.alignment=ft.Alignment.CENTER
-                            itemContainers[d]=item
+                            itemCont.alignment=ft.Alignment.CENTER
+                            itemContainers[d]=itemCont
+                            itemCont.update()
+                            page.update()
                         else:
+                            print(f"Not Found, Continuing Item Name, current: {d}, container ID: {itemContainers[d]}")
                             continue
                     else:
                         for u in h:
-                            if itemContainers[d][u]==item:
+                            if itemContainers[d][u]==itemCont:
                                 itName=d
                                 itSub=u
-                                item.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
+                                print(f"ItemExpandedName: {itName}:{itSub}, ID: {itemContainers[d][u]}")
+                                itemCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
                                 ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
                                 ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{u.capitalize()}:\n{invenBox[d][u]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
                                 ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
                                 ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName,itSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell",bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
-                                item.alignment=ft.Alignment(0,0)
-                                itemContainers[d][u]=item
+                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName,itSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName,itSub), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
+                                itemCont.alignment=ft.Alignment(0,0)
+                                itemContainers[d][u]=itemCont
+                                itemCont.update()
+                                page.update()
                             else:
+                                print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {itemContainers[d][u]}")
                                 continue
-                print(f"Item Received: {item}")
-                item.update()
+                print(f"Item Received: {itemCont}")
+                itemCont.update()
                 inventoryBox.update()
                 everything.update()
                 moneybox.update()
