@@ -362,6 +362,7 @@ def main(page: ft.Page):
                         ],
                         height=200
                     ),
+                    bgcolor=ft.Colors.GREEN_100,
                     on_dismiss=lambda e:getInven(itemExpandedName)
                 )
                 page.show_dialog(selldia)
@@ -455,7 +456,7 @@ def main(page: ft.Page):
                 moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.GREEN, height=50, width=100)
-                selldia=ft.AlertDialog(
+                sellrecdia=ft.AlertDialog(
                     title=ft.Text(f"Selling {itemName.capitalize()}: {itemsub.capitalize()}"),
                     content=ft.Column(
                         controls=[
