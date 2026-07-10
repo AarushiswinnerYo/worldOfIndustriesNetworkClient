@@ -38,6 +38,7 @@ moneybox=ft.Container()
 #DEFAULT VARS
 DISCONNECT_MSG="!disconnect"
 logged=False
+is_animating=False
 userName=""
 boxShadow=ft.BoxShadow(blur_radius=15, spread_radius=2.5, color=ft.Colors.DEEP_PURPLE_ACCENT, offset=ft.Offset(0,0))
 grad=ft.LinearGradient(
@@ -47,6 +48,7 @@ grad=ft.LinearGradient(
 ####################################################################################################################
 
 def main(page: ft.Page):
+    global is_animating
     bar_width, handle_size = 300, 60
     max_x = bar_width - handle_size
     global t1
@@ -194,8 +196,8 @@ def main(page: ft.Page):
     def openInventory():
         global inventoryBoxExp
         if not inventoryBoxExp:
+            is_animating=True
             inventoryBoxExp=True
-            getInven()
             inventoryBox.width=widthscr-20
             inventoryBox.height=600
             inventoryBox.padding=ft.Padding.all(0)
@@ -203,21 +205,26 @@ def main(page: ft.Page):
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             moneybox.opacity=0
             recipebox.opacity=0
+            page.update()
             getInven()
+            is_animating=False
         else:
+            is_animating=True
             inventoryBoxExp=False
-            getInven()
             moneybox.opacity=1
             recipebox.opacity=1
             inventoryBox.width=300
             inventoryBox.height=300
             inventoryBox.alignment=ft.Alignment.TOP_LEFT
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
+            page.update()
+            getInven()
+            is_animating=False
     def openRecipes():
         global recipeBoxExp
         if not recipeBoxExp:
+            is_animating=True
             recipeBoxExp=True
-            getInven()
             recipebox.margin=ft.Margin.only(left=0)
             recipebox.padding=ft.Padding.all(0)
             recipebox.width=widthscr-40
@@ -233,10 +240,12 @@ def main(page: ft.Page):
             inventoryBox.width=0
             moneybox.opacity=0
             moneybox.width=0
+            page.update()
             getInven()
+            is_animating=False
         else:
+            is_animating=True
             recipeBoxExp=False
-            getInven()
             inventoryBox.opacity=1
             inventoryBox.width=300
             recipebox.margin=ft.Margin.only(left=10)
@@ -251,7 +260,9 @@ def main(page: ft.Page):
             recipebox.height=300
             recipebox.alignment=ft.Alignment.TOP_LEFT
             recipebox.scroll=ft.ScrollMode.HIDDEN
+            page.update()
             getInven()
+            is_animating=False
     async def handle_scroll(e):
         inventoryExpRow.scroll_to(delta=e.control.max_scroll_extent.y/2, duration=100)
         print("scrolled")
@@ -267,6 +278,7 @@ def main(page: ft.Page):
         global itemExpanded
         global itemExpandedName
         if not itemExpanded:
+            is_animating=True
             itemExpanded=True
             e.control.adaptive=True
             e.control.on_hover=None
@@ -283,7 +295,9 @@ def main(page: ft.Page):
             getInven(itemCont=e.control)
             print(f"Item Clicked: {e.control}")
             page.update()
+            is_animating=False
         else:
+            is_animating=True
             inventoryBox.on_click=lambda s: openInventory()
             e.control.width=300
             e.control.height=300
@@ -291,11 +305,13 @@ def main(page: ft.Page):
             e.control.update()
             getInven()
             page.update()
+            is_animating=False
 
     def recipeExpand(e):
         global recipeExpanded
         global recipeExpandedName
         if not recipeExpanded:
+            is_animating=True
             recipeExpanded=True
             e.control.adaptive=True
             e.control.on_hover=None
@@ -312,7 +328,9 @@ def main(page: ft.Page):
             getInven(recipeCont=e.control)
             print(f"Item Clicked: {e.control}")
             page.update()
+            is_animating=False
         else:
+            is_animating=True
             recipebox.on_click=lambda s: openRecipes()
             e.control.width=300
             e.control.height=300
@@ -320,6 +338,7 @@ def main(page: ft.Page):
             e.control.update()
             getInven()
             page.update()
+            is_animating=False
 
     def getInven(itemCont=None, recipeCont=None):
         #SELL FUNCTIONS
@@ -362,8 +381,7 @@ def main(page: ft.Page):
                         ],
                         height=200
                     ),
-                    bgcolor=ft.Colors.GREEN_100,
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    bgcolor=ft.Colors.GREEN_100
                 )
                 page.show_dialog(selldia)
                 page.update()
@@ -391,8 +409,7 @@ def main(page: ft.Page):
                             sellButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    )
                 )
                 page.show_dialog(selldia)
                 page.update()
@@ -437,8 +454,7 @@ def main(page: ft.Page):
                             sellButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    )
                 )
                 page.show_dialog(sellrecdia)
                 page.update()
@@ -466,8 +482,7 @@ def main(page: ft.Page):
                             sellButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    )
                 )
                 page.show_dialog(sellrecdia)
                 page.update()
@@ -513,8 +528,7 @@ def main(page: ft.Page):
                             craftButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(recipeCont=recipeExpandedName)
+                    )
                 )
                 page.show_dialog(craftdia)
             else:
@@ -541,8 +555,7 @@ def main(page: ft.Page):
                             craftButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(recipeCont=recipeExpandedName)
+                    )
                 )
                 page.show_dialog(craftdia)
                 
@@ -586,8 +599,7 @@ def main(page: ft.Page):
                             buyButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    )
                 )
                 page.show_dialog(buydia)
             else:
@@ -614,8 +626,7 @@ def main(page: ft.Page):
                             buyButton
                         ],
                         height=200
-                    ),
-                    on_dismiss=lambda e:getInven(itemExpandedName)
+                    )
                 )
                 page.show_dialog(buydia)
         
@@ -945,18 +956,21 @@ def main(page: ft.Page):
 
     async def updateInven(stop_Flag):
         while not stop_Flag.is_set():
+            print(is_animating)
             if page.window.visible==False:
                 t1.join()
                 stop_Flag.set()
                 break
             else:
-                if itemExpanded:
+                if is_animating:
+                    continue
+                elif itemExpanded:
                     getInven(itemExpandedName)
                 elif recipeExpanded:
                     getInven(recipeCont=recipeExpandedName)
                 elif not itemExpanded:
                     getInven()
-                await asyncio.sleep(5)
+                time.sleep(5)
     thumb = ft.Container(
         width=handle_size, height=handle_size,
         bgcolor=ft.Colors.PURPLE_ACCENT_700, border_radius=handle_size/2,
@@ -1020,7 +1034,6 @@ def main(page: ft.Page):
         page.window.visible=False
         page.window.destroy()
         page.update()
-        quit(1)
     def minimize(l):
         page.window.minimized=True
         page.update()
