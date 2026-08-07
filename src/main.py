@@ -640,6 +640,7 @@ def main(page: ft.Page):
                 money=log["info"].pop("money")
                 recipeContent=log["info"].pop("recipes")
                 group=log['info'].pop("group")
+                valuations=log['info'].pop('valuations')
                 invenBox=log["info"]
                 inventoryList.clear()
                 recipeList.clear()
