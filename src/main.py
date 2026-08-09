@@ -7,7 +7,7 @@ import ast
 import pickle
 import asyncio
 import defineContent as contentDefiner
-
+import tracemalloc
 
 #RECIPE VARS
 recipeContent={}
@@ -47,7 +47,8 @@ grad=ft.LinearGradient(
             colors=[ft.Colors.BLACK, ft.Colors.BLACK, ft.Colors.PURPLE_ACCENT_700])
 ####################################################################################################################
 
-def main(page: ft.Page):
+
+async def main(page: ft.Page):
     global is_animating
     bar_width, handle_size = 300, 60
     max_x = bar_width - handle_size
@@ -65,6 +66,7 @@ def main(page: ft.Page):
     page.theme=ft.Theme(scrollbar_theme=ft.ScrollbarTheme(thickness=0, thumb_visibility=False))
     page.window.animate_opacity=ft.Animation(1000, ft.AnimationCurve.EASE_OUT)
     page.padding=0
+    page.title="World of Industries"
     page.window.draggable=True
     page.window.resizable=False
     page.window.maximizable=False
@@ -78,7 +80,6 @@ def main(page: ft.Page):
             body_medium=ft.TextStyle(color=ft.Colors.WHITE)
         )
     )
-    page.update()
     widthscr=page.window.width
     test=ft.TextField(hint_text="Username", width=500, color=ft.Colors.WHITE)
     Pass=ft.TextField(hint_text="Password", width=500, password=True, can_reveal_password=True, color=ft.Colors.WHITE)
@@ -86,12 +87,13 @@ def main(page: ft.Page):
     rw=ft.Row(spacing=10)
     invenBox={}
     reciBox={}
-    def printText(f):
-        t.value=str(test.value)
-        page.update()
-    def changeWidth(e):
-        page.window.width=int(e)
-        page.update()
+    async def refreshWindow(stop_event):
+        while not stop_event.is_set():
+            page.update()
+            if is_animating:
+                await asyncio.sleep(5)
+            else:
+                await asyncio.sleep(1)
     def login(user, passwd):
         global userName
         global logged
@@ -126,21 +128,15 @@ def main(page: ft.Page):
                 inventoryBox.controls=inventoryList
                 moneybox.content=ft.Text(value=f"Money: {money}")
                 recipebox.content=ft.Text(value=f"{recipeContent}")
-                inventoryBox.update()
-                everything.update()
-                page.update()
                 t1.start()
             elif r["user"]=="Token not found!":
-                def closeTryDialog(x=None):
-                    dia.open=False
-                    page.update()
                 t.value=f"Hello!"
-                dia=ft.AlertDialog(title="Logged out!", content=ft.Text("Your account was logged out! Login again!", color=ft.Colors.BLACK))
+                dia=ft.AlertDialog(title="Logged out!", content=ft.Text("Your account was logged out! Login again!", color=ft.Colors.WHITE))
                 everything.content=ft.ResponsiveRow([
                             ft.Container(content=ft.Column([
                                 test,
                                 Pass,
-                                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value)),
+                                ft.FloatingActionButton(content="Login", on_click=lambda x:login(test.value, Pass.value), bgcolor=ft.Colors.DEEP_PURPLE_ACCENT, width=150, height=50),
                             ],
                             spacing=10,
                             alignment=ft.Alignment.CENTER,
@@ -180,21 +176,21 @@ def main(page: ft.Page):
                 moneybox.content=ft.Text(value=f"Money: {money}")
                 inventoryBox.update()
                 everything.update()
-                page.update()
                 t1.start()
-    def defineClosedOrOpen(l):
+    async def defineClosedOrOpen(l):
         if t1.is_alive():
-            closeConn(l)
+            await closeConn(l)
         else:
-            delete(l)
-    def closeConn(l):
+            await delete(l)
+    async def closeConn(l):
         logged=False
         stop_event.set()
         t1.join()
         print("stopped")
-        delete(l)
+        await delete(l)
     def openInventory():
         global inventoryBoxExp
+        global is_animating
         if not inventoryBoxExp:
             is_animating=True
             inventoryBoxExp=True
@@ -205,7 +201,6 @@ def main(page: ft.Page):
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
             moneybox.opacity=0
             recipebox.opacity=0
-            page.update()
             getInven()
             is_animating=False
         else:
@@ -217,11 +212,11 @@ def main(page: ft.Page):
             inventoryBox.height=300
             inventoryBox.alignment=ft.Alignment.TOP_LEFT
             inventoryBox.scroll=ft.ScrollMode.HIDDEN
-            page.update()
             getInven()
             is_animating=False
     def openRecipes():
         global recipeBoxExp
+        global is_animating
         if not recipeBoxExp:
             is_animating=True
             recipeBoxExp=True
@@ -240,7 +235,6 @@ def main(page: ft.Page):
             inventoryBox.width=0
             moneybox.opacity=0
             moneybox.width=0
-            page.update()
             getInven()
             is_animating=False
         else:
@@ -260,26 +254,18 @@ def main(page: ft.Page):
             recipebox.height=300
             recipebox.alignment=ft.Alignment.TOP_LEFT
             recipebox.scroll=ft.ScrollMode.HIDDEN
-            page.update()
             getInven()
             is_animating=False
-    async def handle_scroll(e):
-        inventoryExpRow.scroll_to(delta=e.control.max_scroll_extent.y/2, duration=100)
-        print("scrolled")
-        inventoryBox.update()
-        inventoryExpRow.update()
-        everything.update()
-        page.update()
     def hoverEventContainer(e):
         e.control.bgcolor=ft.Colors.GREY_700 if e.data else ft.Colors.GREY_800
-        e.control.update()
-        page.update()
     def itemExpand(e):
         global itemExpanded
         global itemExpandedName
+        global is_animating
         if not itemExpanded:
             is_animating=True
             itemExpanded=True
+            getInven(itemCont=e.control)
             e.control.adaptive=True
             e.control.on_hover=None
             e.control.bgcolor=ft.Colors.GREY_800
@@ -289,30 +275,25 @@ def main(page: ft.Page):
             itemExpandedName.alignment=ft.Alignment.TOP_CENTER
             itemExpandedName.width=widthscr-50
             itemExpandedName.height=550
-            itemExpandedName.update()
-            everything.update()
-            e.control.update()
-            getInven(itemCont=e.control)
             print(f"Item Clicked: {e.control}")
-            page.update()
             is_animating=False
         else:
             is_animating=True
             inventoryBox.on_click=lambda s: openInventory()
-            e.control.width=300
-            e.control.height=300
+            e.control.width=200
+            e.control.height=200
             itemExpanded=False
-            e.control.update()
             getInven()
-            page.update()
             is_animating=False
 
     def recipeExpand(e):
         global recipeExpanded
         global recipeExpandedName
+        global is_animating
         if not recipeExpanded:
             is_animating=True
             recipeExpanded=True
+            getInven(recipeCont=e.control)
             e.control.adaptive=True
             e.control.on_hover=None
             e.control.bgcolor=ft.Colors.GREY_800
@@ -322,22 +303,15 @@ def main(page: ft.Page):
             recipeExpandedName.alignment=ft.Alignment.TOP_CENTER
             recipeExpandedName.width=widthscr-50
             recipeExpandedName.height=550
-            recipeExpandedName.update()
-            everything.update()
-            e.control.update()
-            getInven(recipeCont=e.control)
             print(f"Item Clicked: {e.control}")
-            page.update()
             is_animating=False
         else:
             is_animating=True
             recipebox.on_click=lambda s: openRecipes()
-            e.control.width=300
-            e.control.height=300
+            e.control.width=200
+            e.control.height=200
             recipeExpanded=False
-            e.control.update()
             getInven()
-            page.update()
             is_animating=False
 
     def getInven(itemCont=None, recipeCont=None):
@@ -346,14 +320,12 @@ def main(page: ft.Page):
             loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
             selldia.content=ft.Container(content=ft.Row(controls=[ft.Text("Selling..."), loadingAnim], height=50))
             q=client.main(msg="sell", passwd=password, amount=amount, materialName=itemName, materialSubtype=itemsub)
-            page.update()
             if q["result"]=="Success":
                 selldia.content=ft.Text("Sold Successfully!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
             elif q["result"]=="Not Sufficient Quantity":
                 selldia.content=ft.Text("Insufficient Quantity!\nPress anywhere to dismiss",color=ft.Colors.BLACK)
             elif q["result"]=="Incorrect Password":
                 selldia.content=ft.Text("Password Incorrect!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
-            page.update()
         def sellfunc(itemName, itemsub=""):
             global selldia
             if itemsub=="":
@@ -367,7 +339,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value), bgcolor=ft.Colors.GREEN, height=50, width=100)
                 selldia=ft.AlertDialog(
@@ -384,7 +356,6 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.GREEN_100
                 )
                 page.show_dialog(selldia)
-                page.update()
             else:
                 amountField = ft.TextField(
                     label="Amount",
@@ -396,7 +367,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.GREEN, height=50, width=100)
                 selldia=ft.AlertDialog(
@@ -412,21 +383,18 @@ def main(page: ft.Page):
                     )
                 )
                 page.show_dialog(selldia)
-                page.update()
         
         def sellrecipe(itemName, amount, password, itemsub=""):
             loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
             sellrecdia.content=ft.Container(content=ft.Row(controls=[ft.Text("Selling..."), loadingAnim], height=50))
             q=client.main(msg="sellrec", passwd=password, amount=amount, materialName=itemName, materialSubtype=itemsub)
             print(q)
-            page.update()
             if q["result"]=="Success":
                 sellrecdia.content=ft.Text("Sold Successfully!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
             elif q["result"]=="Not Sufficient Quantity":
                 sellrecdia.content=ft.Text("Insufficient Quantity!\nPress anywhere to dismiss",color=ft.Colors.BLACK)
             elif q["result"]=="Incorrect Password":
                 sellrecdia.content=ft.Text("Password Incorrect!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
-            page.update()
         
         def sellrecipefunc(itemName, itemsub=""):
             global sellrecdia
@@ -441,7 +409,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sellrecipe(itemName, amountField.value, password.value), bgcolor=ft.Colors.GREEN, height=50, width=100)
                 sellrecdia=ft.AlertDialog(
@@ -457,7 +425,6 @@ def main(page: ft.Page):
                     )
                 )
                 page.show_dialog(sellrecdia)
-                page.update()
             else:
                 amountField = ft.TextField(
                     label="Amount",
@@ -469,7 +436,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 sellButton=ft.FloatingActionButton(content="Sell", on_click=lambda x:sell(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.GREEN, height=50, width=100)
                 sellrecdia=ft.AlertDialog(
@@ -485,13 +452,11 @@ def main(page: ft.Page):
                     )
                 )
                 page.show_dialog(sellrecdia)
-                page.update()
         
         def craft(itemName, amount, password, itemsub=""):
             loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
             craftdia.content=ft.Container(content=ft.Row(controls=[ft.Text("Crafting..."), loadingAnim], height=50))
             q=client.main(msg="craft", passwd=password, amount=amount, materialName=itemName, materialSubtype=itemsub)
-            page.update()
             if q["result"]=="Success":
                 craftdia.content=ft.Text("Crafting Successful!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
             elif q["result"]=="Not Sufficient Funds":
@@ -500,7 +465,6 @@ def main(page: ft.Page):
                 craftdia.content=ft.Text("Password Incorrect!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
             elif q["result"]=="Not Sufficient Materials":
                 craftdia.content(ft.Text("You have insufficient amount of raw materials\nPress anywhere to dismiss", color=ft.Colors.BLACK))
-            page.update()
         def craftrecipefunc(itemName, itemsub=""):
             global craftdia
             if itemsub=="":
@@ -514,7 +478,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 craftButton=ft.FloatingActionButton(content="Craft", on_click=lambda x:craft(itemName, amountField.value, password.value), bgcolor=ft.Colors.RED, height=50, width=100)
                 craftdia=ft.AlertDialog(
@@ -542,7 +506,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 craftButton=ft.FloatingActionButton(content="Craft", on_click=lambda x:craft(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.RED, height=50, width=100)
                 craftdia=ft.AlertDialog(
@@ -564,14 +528,12 @@ def main(page: ft.Page):
             loadingAnim=ft.ProgressRing(visible=True, height=10, width=10, stroke_width=1.5)
             buydia.content=ft.Container(content=ft.Row(controls=[ft.Text("Purchasing..."), loadingAnim], height=50))
             q=client.main(msg="buy", passwd=password, amount=amount, materialName=itemName, materialSubtype=itemsub)
-            page.update()
             if q["result"]=="Success":
                 buydia.content=ft.Text("Purchase Successful!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
             elif q["result"]=="Not Sufficient Funds":
                 buydia.content=ft.Text("Insufficient Balance!\nPress anywhere to dismiss",color=ft.Colors.BLACK)
             elif q["result"]=="Incorrect Password":
                 buydia.content=ft.Text("Password Incorrect!\nPress anywhere to dismiss", color=ft.Colors.BLACK)
-            page.update()
         def buyfunc(itemName, itemsub=""):
             global buydia
             if itemsub=="":
@@ -585,7 +547,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 buyButton=ft.FloatingActionButton(content="Buy", on_click=lambda x:buy(itemName, amountField.value, password.value), bgcolor=ft.Colors.RED, height=50, width=100)
                 buydia=ft.AlertDialog(
@@ -613,7 +575,7 @@ def main(page: ft.Page):
                         replacement_string=""
                     )
                 )
-                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.BLACK)
+                moneyCounter=ft.Text(f"Current Balance: {moneyBal}", color=ft.Colors.WHITE)
                 password=ft.TextField(label="Password", width=500, password=True, can_reveal_password=True)
                 buyButton=ft.FloatingActionButton(content="Buy", on_click=lambda x:buy(itemName, amountField.value, password.value, itemsub=itemsub), bgcolor=ft.Colors.RED, height=50, width=100)
                 buydia=ft.AlertDialog(
@@ -641,6 +603,7 @@ def main(page: ft.Page):
                 recipeContent=log["info"].pop("recipes")
                 group=log['info'].pop("group")
                 valuations=log['info'].pop('valuations')
+                workers=log['info'].pop('workers')
                 invenBox=log["info"]
                 inventoryList.clear()
                 recipeList.clear()
@@ -672,6 +635,7 @@ def main(page: ft.Page):
                 inventoryBox.scroll=ft.ScrollMode.HIDDEN
                 inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 inventoryBox.adaptive=True
+                inventoryBox.alignment=ft.Alignment.TOP_LEFT
                 
                 #MONEY BOX SETTINGs
                 moneybox.margin=ft.Margin.only(left=10)
@@ -691,14 +655,16 @@ def main(page: ft.Page):
                 recipebox.scroll=ft.ScrollMode.HIDDEN
                 recipebox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 recipebox.adaptive=True
+                recipebox.alignment=ft.Alignment.TOP_LEFT
                 
                 everything.alignment=ft.Alignment(-0.9,-0.9)
-                page.update()
             elif recipeBoxExp and not recipeExpanded and not inventoryBoxExp:
                 global recipeExpRow
                 log=client.main(f"info")
                 money=log["info"].pop("money")
                 group=log['info'].pop("group")
+                valuations=log['info'].pop('valuations')
+                workers=log['info'].pop('workers')
                 recipeContent=log["info"].pop("recipes")
                 craftPrices=client.main("craftPrices")
                 print(craftPrices)
@@ -762,15 +728,14 @@ def main(page: ft.Page):
                 moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
                 moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 everything.alignment=ft.Alignment.TOP_LEFT
-                everything.update()
-                moneybox.update()
-                page.update()
             elif inventoryBoxExp and not itemExpanded and not recipeExpanded:
                 print("Item Not Expanded")
                 global inventoryExpRow
                 log=client.main(f"info")
                 money=log["info"].pop("money")
                 group=log['info'].pop("group")
+                valuations=log['info'].pop('valuations')
+                workers=log['info'].pop('workers')
                 recipeContent=log["info"].pop("recipes")
                 buyPrices=client.main("buyPrices")
                 sellPrices=client.main("sellPrices")
@@ -835,15 +800,14 @@ def main(page: ft.Page):
                 moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
                 moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
                 everything.alignment=ft.Alignment.TOP_LEFT
-                everything.update()
-                moneybox.update()
-                page.update()
             elif recipeBoxExp and recipeExpanded:
                 global moneyBal
                 print("Recipe Expanded")
                 log=client.main(f"info")
                 moneyBal=log["info"].pop("money")
                 group=log['info'].pop("group")
+                valuations=log['info'].pop('valuations')
+                workers=log['info'].pop('workers')
                 recipeContent=log["info"].pop("recipes")
                 craftPrices=client.main("craftPrices")
                 sellRecipePrices=client.main("sellRecipePrices")
@@ -868,7 +832,6 @@ def main(page: ft.Page):
                             recipeCont.alignment=ft.Alignment.CENTER
                             recipeContainers[d]=recipeCont
                             recipeCont.update()
-                            page.update()
                         else:
                             print(f"Not Found, Continuing Item Name, current: {d}, container ID: {recipeContainers[d]}")
                             continue
@@ -887,21 +850,18 @@ def main(page: ft.Page):
                                 recipeCont.alignment=ft.Alignment(0,0)
                                 recipeContainers[d][u]=itemCont
                                 recipeCont.update()
-                                page.update()
                             else:
                                 print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {recipeContainers[d][u]}")
                                 continue
                 print(f"Item Received: {recipeCont}")
-                inventoryBox.update()
-                everything.update()
-                moneybox.update()
-                page.update()
             elif inventoryBoxExp and itemExpanded:
                 print("Item Expanded")
                 log=client.main(f"info")
                 moneyBal=log["info"].pop("money")
                 group=log['info'].pop("group")
                 recipeContent=log["info"].pop("recipes")
+                valuations=log['info'].pop('valuations')
+                workers=log['info'].pop('workers')
                 buyPrices=client.main("buyPrices")
                 sellPrices=client.main("sellPrices")
                 invenBox=log["info"]
@@ -925,7 +885,6 @@ def main(page: ft.Page):
                             itemCont.alignment=ft.Alignment.CENTER
                             itemContainers[d]=itemCont
                             itemCont.update()
-                            page.update()
                         else:
                             print(f"Not Found, Continuing Item Name, current: {d}, container ID: {itemContainers[d]}")
                             continue
@@ -944,100 +903,37 @@ def main(page: ft.Page):
                                 itemCont.alignment=ft.Alignment(0,0)
                                 itemContainers[d][u]=itemCont
                                 itemCont.update()
-                                page.update()
                             else:
                                 print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {itemContainers[d][u]}")
                                 continue
                 print(f"Item Received: {itemCont}")
-                itemCont.update()
-                inventoryBox.update()
-                everything.update()
-                moneybox.update()
-                page.update()
 
     async def updateInven(stop_Flag):
         while not stop_Flag.is_set():
             print(is_animating)
             if page.window.visible==False:
                 t1.join()
+                pageRefresher.join()
                 stop_Flag.set()
-                break
+                quit()
             else:
                 if is_animating:
-                    continue
+                    pass
                 elif itemExpanded:
                     getInven(itemExpandedName)
                 elif recipeExpanded:
                     getInven(recipeCont=recipeExpandedName)
-                elif not itemExpanded:
+                elif not itemExpanded and not recipeExpanded:
                     getInven()
-                time.sleep(5)
-    thumb = ft.Container(
-        width=handle_size, height=handle_size,
-        bgcolor=ft.Colors.PURPLE_ACCENT_700, border_radius=handle_size/2,
-        content=ft.Icon(ft.Icons.CHEVRON_RIGHT, color="white"),
-    )
-
-    # We use a GestureDetector and update its 'left' property
-    slider = ft.GestureDetector(
-        content=thumb,
-        left=0,
-        animate_position=ft.Animation(100, ft.AnimationCurve.EASE),
-        on_pan_update=lambda e: handle_move(e),
-        on_pan_end=lambda e: handle_release(e),
-    )
-
-    def handle_move(e: ft.DragUpdateEvent):
-        # VERSION-PROOF DELTA CHECK
-        delta = 0
-        try:
-            if e.delta_x is not None: delta = e.delta_x
-        except AttributeError:
-            try:
-                if e.local_delta.x is not None: delta = e.local_delta.x
-            except AttributeError:
-                if e.primary_delta is not None: delta = e.primary_delta
-
-        # Apply movement
-        new_left = slider.left + delta
-        # Lock strictly inside [0, max_x]
-        slider.left = max(0, min(new_left, max_x))
-        slider.update()
-
-    def handle_release(e: ft.DragEndEvent):
-        # Snap or Confirm
-        slider.animate_position = ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT)
-        
-        if slider.left > max_x * 0.95 and test.value!="":# 95% through the bar
-            st.alignment=ft.Alignment.CENTER 
-            slider.left = max_x
-            thumb.bgcolor = ft.Colors.GREEN_700
-            thumb.content = ft.Icon(ft.Icons.CHECK, color="white")
-            txt.value=""
-            track.width=handle_size
-            slider.padding=ft.Padding.all(0)
-            slider.left=bar_width/2.6
-            page.update()
-            time.sleep(2)
-            login(test.value, Pass.value)
-        else:
-            slider.left = 0 # Smoothly slides back
-            
-        slider.update()
-        thumb.update()
-    def delete(l):
+                await asyncio.sleep(5)
+    async def delete(l):
         inventoryBox.controls=[ft.Text(value="Closing...")]
-        page.update()
         page.controls.clear()
-        page.update()
         page.window.opacity=0
-        page.update()
         page.window.visible=False
-        page.window.destroy()
-        page.update()
+        await page.window.destroy()
     def minimize(l):
         page.window.minimized=True
-        page.update()
     def testAnim(l):
         everything.opacity=0
         everything.update()
@@ -1045,7 +941,6 @@ def main(page: ft.Page):
         everything.opacity=1
         everything.gradient=grad
         everything.update()
-        page.update()
     topNav=ft.ResponsiveRow([
         ft.WindowDragArea(
             ft.Container(
@@ -1063,7 +958,7 @@ def main(page: ft.Page):
                     ft.Row([
                     ft.Row(width=10),
                     ft.TextButton(icon=ft.Icons.REMOVE, width=35, height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0)), on_click=lambda x: minimize(x)),
-                    ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: defineClosedOrOpen(x)),], 
+                    ft.TextButton(icon=ft.Icons.CLOSE, width=35,height=25, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0), overlay_color=ft.Colors.DEEP_ORANGE),on_click=lambda x: asyncio.create_task(defineClosedOrOpen(x))),], 
                     width=200, spacing=0,
                     alignment=ft.Alignment.TOP_CENTER),
                 ],
@@ -1098,11 +993,15 @@ def main(page: ft.Page):
     )
     stop_event = Event()
     t1=Thread(target=asyncio.run, args=(updateInven(stop_event),))
+    pageRefresher=Thread(target=asyncio.run, args=(refreshWindow(stop_event),))
+    pageRefresher.start()
     if os.path.exists("token.pkl"):
         login(user="", passwd="")
     else:
         page.add(topNav)
         page.add(Bg)
-        page.update()
 
-ft.run(main=main, assets_dir="assets")
+if __name__ == "__main__":    
+    tracemalloc.start()
+    ft.run(main=main, assets_dir="assets")
+    quit()
