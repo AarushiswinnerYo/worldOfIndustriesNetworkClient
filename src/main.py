@@ -20,6 +20,8 @@ recipeExpRow=ft.Row()
 recipeContainers={}
 ########################
 
+prevLog={}
+
 #RAW MATERIAL VARS
 inventoryList=[]
 itemContainers={}
@@ -596,317 +598,379 @@ async def main(page: ft.Page):
         if logged==False:
             return
         else:
-            print("updated")
             if not inventoryBoxExp and not recipeBoxExp:
+                global prevLog
                 log=client.main(f"info")
-                money=log["info"].pop("money")
-                recipeContent=log["info"].pop("recipes")
-                group=log['info'].pop("group")
-                valuations=log['info'].pop('valuations')
-                workers=log['info'].pop('workers')
-                invenBox=log["info"]
-                inventoryList.clear()
-                recipeList.clear()
-                for i in invenBox.keys():
-                    try:
-                        j=invenBox[i].keys()
-                    except:
-                        inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
-                    else:
-                        inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
-                        for x in j:
-                            inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
-                for b in recipeContent.keys():
-                    try:
-                        recipeKeys=recipeContent[b].keys()
-                    except:
-                        recipeList.append(ft.Text(value=f"{b.capitalize()}: {recipeContent[b]}"))
-                    else:
-                        recipeList.append(ft.Text(f"{b.capitalize()}"))
-                        for individualRecipeKey in recipeKeys:
-                            recipeList.append(ft.Text(f"    {individualRecipeKey.capitalize()}: {recipeContent[b][individualRecipeKey]}"))
-                #INVENTORY BOX SETTINGS
-                inventoryBox.content=(ft.Column([ft.Container(content=ft.Text(value=f"Raw Materials:", size=25), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15)), ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN)],scroll=ft.ScrollMode.HIDDEN))
-                inventoryBox.border_radius=ft.BorderRadius.all(13)
-                inventoryBox.on_click=lambda s: openInventory()
-                inventoryBox.margin=ft.Margin.only(left=10)
-                inventoryBox.padding=ft.Padding.all(7.5)
-                inventoryBox.bgcolor=ft.Colors.GREY_900
-                inventoryBox.scroll=ft.ScrollMode.HIDDEN
-                inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                inventoryBox.adaptive=True
-                inventoryBox.alignment=ft.Alignment.TOP_LEFT
-                
-                #MONEY BOX SETTINGs
-                moneybox.margin=ft.Margin.only(left=10)
-                moneybox.border_radius=ft.BorderRadius.all(13)
-                moneybox.padding=ft.Padding.all(7.5)
-                moneybox.alignment=ft.Alignment.TOP_CENTER
-                moneybox.content=ft.Container(content=ft.Column([ft.Text(value=f"Money: {money}", size=20), ft.Text(value=f"Group: {group}", size=20)], width=600, expand=False, horizontal_alignment=ft.CrossAxisAlignment.CENTER), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15), height=100)
-                moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                
-                #RECIPE BOX SETTINGS
-                recipebox.content=ft.Column([ft.Container(content=ft.Text(value=f"Recipes:", size=25), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15)), ft.Column(controls=recipeList, scroll=ft.ScrollMode.HIDDEN)])
-                recipebox.border_radius=ft.BorderRadius.all(13)
-                recipebox.on_click=lambda s: openRecipes()
-                recipebox.margin=ft.Margin.only(left=10)
-                recipebox.padding=ft.Padding.all(7.5)
-                recipebox.bgcolor=ft.Colors.GREY_900
-                recipebox.scroll=ft.ScrollMode.HIDDEN
-                recipebox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                recipebox.adaptive=True
-                recipebox.alignment=ft.Alignment.TOP_LEFT
-                
-                everything.alignment=ft.Alignment(-0.9,-0.9)
+                if log==prevLog:
+                    return
+                else:
+                    prevLog=log
+                    money=log["info"].pop("money")
+                    recipeContent=log["info"].pop("recipes")
+                    group=log['info'].pop("group")
+                    valuations=log['info'].pop('valuations')
+                    workers=log['info'].pop('workers')
+                    invenBox=log["info"]
+                    inventoryList.clear()
+                    recipeList.clear()
+                    for i in invenBox.keys():
+                        try:
+                            j=invenBox[i].keys()
+                        except:
+                            inventoryList.append(ft.Text(value=f"{i.capitalize()}: {invenBox[i]}"))
+                        else:
+                            inventoryList.append(ft.Text(value=f"{i.capitalize()}:"))
+                            for x in j:
+                                inventoryList.append(ft.Text(value=f"   {x.capitalize()}: {invenBox[i][x]}"))
+                    for b in recipeContent.keys():
+                        try:
+                            recipeKeys=recipeContent[b].keys()
+                        except:
+                            recipeList.append(ft.Text(value=f"{b.capitalize()}: {recipeContent[b]}"))
+                        else:
+                            recipeList.append(ft.Text(f"{b.capitalize()}"))
+                            for individualRecipeKey in recipeKeys:
+                                recipeList.append(ft.Text(f"    {individualRecipeKey.capitalize()}: {recipeContent[b][individualRecipeKey]}"))
+                    #INVENTORY BOX SETTINGS
+                    inventoryBox.content=(ft.Column([ft.Container(content=ft.Text(value=f"Raw Materials:", size=25), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15)), ft.Column(controls=inventoryList, scroll=ft.ScrollMode.HIDDEN)],scroll=ft.ScrollMode.HIDDEN))
+                    inventoryBox.border_radius=ft.BorderRadius.all(13)
+                    inventoryBox.on_click=lambda s: openInventory()
+                    inventoryBox.margin=ft.Margin.only(left=10)
+                    inventoryBox.padding=ft.Padding.all(7.5)
+                    inventoryBox.bgcolor=ft.Colors.GREY_900
+                    inventoryBox.scroll=ft.ScrollMode.HIDDEN
+                    inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    inventoryBox.adaptive=True
+                    inventoryBox.alignment=ft.Alignment.TOP_LEFT
+                    
+                    #MONEY BOX SETTINGs
+                    moneybox.margin=ft.Margin.only(left=10)
+                    moneybox.border_radius=ft.BorderRadius.all(13)
+                    moneybox.padding=ft.Padding.all(7.5)
+                    moneybox.alignment=ft.Alignment.TOP_CENTER
+                    moneybox.content=ft.Container(content=ft.Column([ft.Text(value=f"Money: {money}", size=20), ft.Text(value=f"Group: {group}", size=20)], width=600, expand=False, horizontal_alignment=ft.CrossAxisAlignment.CENTER), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15), height=100)
+                    moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    
+                    #RECIPE BOX SETTINGS
+                    recipebox.content=ft.Column([ft.Container(content=ft.Text(value=f"Recipes:", size=25), padding=ft.Padding.all(10), bgcolor="#4A009E", border_radius=ft.BorderRadius.all(15)), ft.Column(controls=recipeList, scroll=ft.ScrollMode.HIDDEN)])
+                    recipebox.border_radius=ft.BorderRadius.all(13)
+                    recipebox.on_click=lambda s: openRecipes()
+                    recipebox.margin=ft.Margin.only(left=10)
+                    recipebox.padding=ft.Padding.all(7.5)
+                    recipebox.bgcolor=ft.Colors.GREY_900
+                    recipebox.scroll=ft.ScrollMode.HIDDEN
+                    recipebox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    recipebox.adaptive=True
+                    recipebox.alignment=ft.Alignment.TOP_LEFT
+                    
+                    everything.alignment=ft.Alignment(-0.9,-0.9)
             elif recipeBoxExp and not recipeExpanded and not inventoryBoxExp:
                 global recipeExpRow
                 log=client.main(f"info")
-                money=log["info"].pop("money")
-                group=log['info'].pop("group")
-                valuations=log['info'].pop('valuations')
-                workers=log['info'].pop('workers')
-                recipeContent=log["info"].pop("recipes")
-                craftPrices=client.main("craftPrices")
-                print(craftPrices)
-                sellRecipePrices=client.main("sellRecipePrices")
-                invenBox=log["info"]
-                inventoryList.clear()
-                recipeList.clear()
-                for i in recipeContent.keys():
-                    try:
-                        j=recipeContent[i].keys()
-                    except:
-                        recipeContainers[i]=ft.Container(content=ft.Column(controls=[
-                            ft.Container(content=ft.Image(src="icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
-                            ft.Text(value=f"{i.capitalize()}: {recipeContent[i]}\n", text_align=ft.Alignment.CENTER, size=13),
-                            ft.Text(value=f"Crafting Price: {craftPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
-                            ft.Text(value=f"Sell Price: {sellRecipePrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)
-                            ], spacing=5),
-                            bgcolor=ft.Colors.GREY_800,
-                            border_radius=ft.BorderRadius.all(15), 
-                            height=200, width=200, 
-                            alignment=ft.Alignment.CENTER,
-                            padding=ft.Padding.all(10), 
-                            on_hover=hoverEventContainer, 
-                            on_click=recipeExpand,
-                            animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
-                            )
-                        recipeList.append(recipeContainers[i])
-                    else:
-                        recipeContainers[i]={}
-                        totalcount=0
-                        for x in j:
-                            totalcount+=recipeContent[i][x]
-                        for x in j:
-                            recipeContainers[i][x]=ft.Container(content=ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
-                                ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {recipeContent[i][x]}", text_align=ft.Alignment.CENTER, size=13),
-                                ft.Text(value=f"Crafting Price: {craftPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
-                                ft.Text(value=f"Sell Price: {sellRecipePrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
+                if log==prevLog:
+                    return
+                else:
+                    prevLog=log
+                    money=log["info"].pop("money")
+                    group=log['info'].pop("group")
+                    valuations=log['info'].pop('valuations')
+                    workers=log['info'].pop('workers')
+                    recipeContent=log["info"].pop("recipes")
+                    craftPrices=client.main("craftPrices")
+                    print(craftPrices)
+                    sellRecipePrices=client.main("sellRecipePrices")
+                    invenBox=log["info"]
+                    inventoryList.clear()
+                    recipeList.clear()
+                    for i in recipeContent.keys():
+                        try:
+                            j=recipeContent[i].keys()
+                        except:
+                            if os.path.exists(f"./assets/{i.lower()}.png"):
+                                pic=i.lower()
+                            else:
+                                pic="icon"
+                            recipeContainers[i]=ft.Container(content=ft.Column(controls=[
+                                ft.Container(content=ft.Image(src=f"{pic}.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                ft.Text(value=f"{i.capitalize()}: {recipeContent[i]}\n", text_align=ft.Alignment.CENTER, size=13),
+                                ft.Text(value=f"Crafting Price: {craftPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                ft.Text(value=f"Sell Price: {sellRecipePrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)
+                                ], spacing=5),
                                 bgcolor=ft.Colors.GREY_800,
                                 border_radius=ft.BorderRadius.all(15), 
-                                height=200, 
-                                width=200, 
-                                alignment=ft.Alignment.CENTER, 
+                                height=200, width=200, 
+                                alignment=ft.Alignment.CENTER,
                                 padding=ft.Padding.all(10), 
-                                on_hover=hoverEventContainer,
+                                on_hover=hoverEventContainer, 
                                 on_click=recipeExpand,
                                 animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
                                 )
-                            recipeList.append(recipeContainers[i][x])
-                recipeExpRow=ft.Row(controls=recipeList, scroll=ft.ScrollMode.ALWAYS)
-                recipebox.content=ft.Container(content=recipeExpRow)
-                recipebox.border_radius=ft.BorderRadius.all(5)
-                moneybox.border_radius=ft.BorderRadius.all(5)
-                recipebox.on_click=lambda s: openRecipes()
-                recipebox.padding=ft.Padding.all(7.5)
-                recipebox.bgcolor=ft.Colors.GREY_900
-                recipebox.alignment=ft.Alignment.CENTER
-                recipebox.scroll=ft.ScrollMode.HIDDEN
-                recipebox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                recipebox.adaptive=True
-                moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
-                moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                everything.alignment=ft.Alignment.TOP_LEFT
+                            recipeList.append(recipeContainers[i])
+                        else:
+                            recipeContainers[i]={}
+                            totalcount=0
+                            for x in j:
+                                totalcount+=recipeContent[i][x]
+                            for x in j:
+                                if os.path.exists(f"./assets/{x.lower()}-{i.lower()}.png"):
+                                    pic=f"{x.lower()}-{i.lower()}"
+                                else:
+                                    pic="icon"
+                                recipeContainers[i][x]=ft.Container(content=ft.Column(controls=[
+                                    ft.Container(content=ft.Image(src=f"{pic}.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                    ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {recipeContent[i][x]}", text_align=ft.Alignment.CENTER, size=13),
+                                    ft.Text(value=f"Crafting Price: {craftPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                    ft.Text(value=f"Sell Price: {sellRecipePrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
+                                    bgcolor=ft.Colors.GREY_800,
+                                    border_radius=ft.BorderRadius.all(15), 
+                                    height=200, 
+                                    width=200, 
+                                    alignment=ft.Alignment.CENTER, 
+                                    padding=ft.Padding.all(10), 
+                                    on_hover=hoverEventContainer,
+                                    on_click=recipeExpand,
+                                    animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+                                    )
+                                recipeList.append(recipeContainers[i][x])
+                    recipeExpRow=ft.Row(controls=recipeList, scroll=ft.ScrollMode.ALWAYS)
+                    recipebox.content=ft.Container(content=recipeExpRow)
+                    recipebox.border_radius=ft.BorderRadius.all(5)
+                    moneybox.border_radius=ft.BorderRadius.all(5)
+                    recipebox.on_click=lambda s: openRecipes()
+                    recipebox.padding=ft.Padding.all(7.5)
+                    recipebox.bgcolor=ft.Colors.GREY_900
+                    recipebox.alignment=ft.Alignment.CENTER
+                    recipebox.scroll=ft.ScrollMode.HIDDEN
+                    recipebox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    recipebox.adaptive=True
+                    moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
+                    moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    everything.alignment=ft.Alignment.TOP_LEFT
             elif inventoryBoxExp and not itemExpanded and not recipeExpanded:
                 print("Item Not Expanded")
                 global inventoryExpRow
                 log=client.main(f"info")
-                money=log["info"].pop("money")
-                group=log['info'].pop("group")
-                valuations=log['info'].pop('valuations')
-                workers=log['info'].pop('workers')
-                recipeContent=log["info"].pop("recipes")
-                buyPrices=client.main("buyPrices")
-                sellPrices=client.main("sellPrices")
-                invenBox=log["info"]
-                inventoryList.clear()
-                for i in invenBox.keys():
-                    try:
-                        j=invenBox[i].keys()
-                    except:
-                        itemContainers[i]=ft.Container(content=ft.Column(controls=[
-                            ft.Container(content=ft.Image(src="icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
-                            ft.Text(value=f"{i.capitalize()}: {invenBox[i]}\n", text_align=ft.Alignment.CENTER, size=13),
-                            ft.Text(value=f"Buy Price: {buyPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
-                            ft.Text(value=f"Sell Price: {sellPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)
-                            ], spacing=5),
-                            bgcolor=ft.Colors.GREY_800,
-                            border_radius=ft.BorderRadius.all(15), 
-                            height=200, width=200, 
-                            alignment=ft.Alignment.CENTER, 
-                            padding=ft.Padding.all(10), 
-                            on_hover=hoverEventContainer, 
-                            on_click=itemExpand,
-                            animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
-                            )
-                        inventoryList.append(itemContainers[i])
-                    else:
-                        itemContainers[i]={}
-                        totalcount=0
-                        for x in j:
-                            totalcount+=invenBox[i][x]
-                        for x in j:
-                            itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
-                                ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER, size=13),
-                                ft.Text(value=f"Buy Price: {buyPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
-                                ft.Text(value=f"Sell Price: {sellPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
-                                bgcolor=ft.Colors.GREY_800,
-                                border_radius=ft.BorderRadius.all(15), 
-                                height=200, 
-                                width=200, 
-                                alignment=ft.Alignment.CENTER, 
-                                padding=ft.Padding.all(10), 
-                                on_hover=hoverEventContainer,
-                                on_click=itemExpand,
-                                animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
-                                )
-                            inventoryList.append(itemContainers[i][x])
-                inventoryExpRow=ft.Row(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS)
-                inventoryBox.content=ft.Container(content=inventoryExpRow)
-                inventoryBox.border_radius=ft.BorderRadius.all(5)
-                moneybox.border_radius=ft.BorderRadius.all(5)
-                inventoryBox.on_click=lambda s: openInventory()
-                inventoryBox.margin=ft.Margin.only(left=10)
-                inventoryBox.padding=ft.Padding.all(7.5)
-                inventoryBox.bgcolor=ft.Colors.GREY_900
-                inventoryBox.alignment=ft.Alignment.CENTER
-                moneybox.margin=ft.Margin.only(left=10)
-                moneybox.padding=ft.Padding.all(7.5)
-                inventoryBox.scroll=ft.ScrollMode.HIDDEN
-                inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                inventoryBox.adaptive=True
-                moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
-                moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
-                everything.alignment=ft.Alignment.TOP_LEFT
+                if log==prevLog:
+                    return
+                else:
+                    prevLog=log
+                    money=log["info"].pop("money")
+                    group=log['info'].pop("group")
+                    valuations=log['info'].pop('valuations')
+                    workers=log['info'].pop('workers')
+                    recipeContent=log["info"].pop("recipes")
+                    buyPrices=client.main("buyPrices")
+                    sellPrices=client.main("sellPrices")
+                    invenBox=log["info"]
+                    inventoryList.clear()
+                    for i in invenBox.keys():
+                        try:
+                            j=invenBox[i].keys()
+                        except:
+                            if os.path.exists(f"./assets/{i.lower()}.png"):
+                                itemContainers[i]=ft.Container(content=ft.Column(controls=[
+                                                            ft.Container(content=ft.Image(src=f"{i.lower()}.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                                            ft.Text(value=f"{i.capitalize()}: {invenBox[i]}\n", text_align=ft.Alignment.CENTER, size=13),
+                                                            ft.Text(value=f"Buy Price: {buyPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                                            ft.Text(value=f"Sell Price: {sellPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)
+                                                            ], spacing=5),
+                                                            bgcolor=ft.Colors.GREY_800,
+                                                            border_radius=ft.BorderRadius.all(15), 
+                                                            height=200, width=200, 
+                                                            alignment=ft.Alignment.CENTER, 
+                                                            padding=ft.Padding.all(10), 
+                                                            on_hover=hoverEventContainer, 
+                                                            on_click=itemExpand,
+                                                            animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+                                                            )
+                            else:
+                                itemContainers[i]=ft.Container(content=ft.Column(controls=[
+                                                        ft.Container(content=ft.Image(src=f"icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                                        ft.Text(value=f"{i.capitalize()}: {invenBox[i]}\n", text_align=ft.Alignment.CENTER, size=13),
+                                                        ft.Text(value=f"Buy Price: {buyPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                                        ft.Text(value=f"Sell Price: {sellPrices[i]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)
+                                                        ], spacing=5),
+                                                        bgcolor=ft.Colors.GREY_800,
+                                                        border_radius=ft.BorderRadius.all(15), 
+                                                        height=200, width=200, 
+                                                        alignment=ft.Alignment.CENTER, 
+                                                        padding=ft.Padding.all(10), 
+                                                        on_hover=hoverEventContainer, 
+                                                        on_click=itemExpand,
+                                                        animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+                                                        )
+                            inventoryList.append(itemContainers[i])
+                        else:
+                            itemContainers[i]={}
+                            totalcount=0
+                            for x in j:
+                                totalcount+=invenBox[i][x]
+                            for x in j:
+                                if os.path.exists(f"./assets/{i.lower()}-{x.lower()}.png"):
+                                    itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
+                                        ft.Container(content=ft.Image(src=f"{i.lower()}-{x.lower()}.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                        ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER, size=13),
+                                        ft.Text(value=f"Buy Price: {buyPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                        ft.Text(value=f"Sell Price: {sellPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
+                                        bgcolor=ft.Colors.GREY_800,
+                                        border_radius=ft.BorderRadius.all(15), 
+                                        height=200, 
+                                        width=200, 
+                                        alignment=ft.Alignment.CENTER, 
+                                        padding=ft.Padding.all(10), 
+                                        on_hover=hoverEventContainer,
+                                        on_click=itemExpand,
+                                        animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+                                    )
+                                else:
+                                    itemContainers[i][x]=ft.Container(content=ft.Column(controls=[
+                                        ft.Container(content=ft.Image(src=f"icon.png", width=65, height=65), border_radius=ft.BorderRadius.all(15)),
+                                        ft.Text(value=f"{i.capitalize()}: {totalcount}\n{x.capitalize()}: {invenBox[i][x]}", text_align=ft.Alignment.CENTER, size=13),
+                                        ft.Text(value=f"Buy Price: {buyPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.RED, size=13),
+                                        ft.Text(value=f"Sell Price: {sellPrices[i][x]}", text_align=ft.Alignment.CENTER, color=ft.Colors.GREEN, size=13)], spacing=5),
+                                        bgcolor=ft.Colors.GREY_800,
+                                        border_radius=ft.BorderRadius.all(15), 
+                                        height=200, 
+                                        width=200, 
+                                        alignment=ft.Alignment.CENTER, 
+                                        padding=ft.Padding.all(10), 
+                                        on_hover=hoverEventContainer,
+                                        on_click=itemExpand,
+                                        animate=ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+                                    )
+                                inventoryList.append(itemContainers[i][x])
+                    inventoryExpRow=ft.Row(controls=inventoryList, scroll=ft.ScrollMode.ALWAYS)
+                    inventoryBox.content=ft.Container(content=inventoryExpRow)
+                    inventoryBox.border_radius=ft.BorderRadius.all(5)
+                    moneybox.border_radius=ft.BorderRadius.all(5)
+                    inventoryBox.on_click=lambda s: openInventory()
+                    inventoryBox.margin=ft.Margin.only(left=10)
+                    inventoryBox.padding=ft.Padding.all(7.5)
+                    inventoryBox.bgcolor=ft.Colors.GREY_900
+                    inventoryBox.alignment=ft.Alignment.CENTER
+                    moneybox.margin=ft.Margin.only(left=10)
+                    moneybox.padding=ft.Padding.all(7.5)
+                    inventoryBox.scroll=ft.ScrollMode.HIDDEN
+                    inventoryBox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    inventoryBox.adaptive=True
+                    moneybox.content=ft.Column([ft.Text(value=f"Money: {money}"), ft.Text(value=f"Group: {group}")])
+                    moneybox.animate=ft.Animation(1000, ft.AnimationCurve.EASE_IN_OUT)
+                    everything.alignment=ft.Alignment.TOP_LEFT
             elif recipeBoxExp and recipeExpanded:
                 global moneyBal
                 print("Recipe Expanded")
                 log=client.main(f"info")
-                moneyBal=log["info"].pop("money")
-                group=log['info'].pop("group")
-                valuations=log['info'].pop('valuations')
-                workers=log['info'].pop('workers')
-                recipeContent=log["info"].pop("recipes")
-                craftPrices=client.main("craftPrices")
-                sellRecipePrices=client.main("sellRecipePrices")
-                invenBox=log["info"]
-                recipebox.content=ft.Container(content=recipeCont)
-                print(f"To Find: {itemCont}")
-                for d in recipeContainers.keys():
-                    try:
-                        h=recipeContainers[d].keys()
-                    except:
-                        if recipeContainers[d]==recipeCont:
-                            recName=d
-                            print(f"ItemExpandedName: {recName}, ID: {recipeContainers[d]}")
-                            recipeCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
-                                ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{recipeContent[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
-                                ft.Container(),
-                                ft.Row(controls=[ft.Container(content=ft.Text(value=f"Craft Price: {craftPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
-                                ft.Container(content=ft.Text(value=f"Sell Price: {sellRecipePrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Craft", on_click=lambda x:craftrecipefunc(recName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellrecipefunc(recName), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
-                                alignment=ft.MainAxisAlignment.CENTER), width=250, height=500)
-                            recipeCont.alignment=ft.Alignment.CENTER
-                            recipeContainers[d]=recipeCont
-                            recipeCont.update()
-                        else:
-                            print(f"Not Found, Continuing Item Name, current: {d}, container ID: {recipeContainers[d]}")
-                            continue
-                    else:
-                        for u in h:
-                            if recipeContainers[d][u]==recipeCont:
+                if log==prevLog:
+                    return
+                else:
+                    prevLog=log
+                    moneyBal=log["info"].pop("money")
+                    group=log['info'].pop("group")
+                    valuations=log['info'].pop('valuations')
+                    workers=log['info'].pop('workers')
+                    recipeContent=log["info"].pop("recipes")
+                    craftPrices=client.main("craftPrices")
+                    sellRecipePrices=client.main("sellRecipePrices")
+                    invenBox=log["info"]
+                    recipebox.content=ft.Container(content=recipeCont)
+                    print(f"To Find: {itemCont}")
+                    for d in recipeContainers.keys():
+                        try:
+                            h=recipeContainers[d].keys()
+                        except:
+                            if recipeContainers[d]==recipeCont:
                                 recName=d
-                                recSub=u
-                                print(f"ItemExpandedName: {recName}:{recSub}, ID: {recipeContainers[d][u]}")
+                                print(f"ItemExpandedName: {recName}, ID: {recipeContainers[d]}")
                                 recipeCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
-                                ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{u.capitalize()}:\n{recipeContent[d][u]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
-                                ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {craftPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
-                                ft.Container(content=ft.Text(value=f"Sell Price: {sellRecipePrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Craft", on_click=lambda x:craftrecipefunc(recName,recSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellrecipefunc(recName,recSub), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
-                                recipeCont.alignment=ft.Alignment(0,0)
-                                recipeContainers[d][u]=itemCont
+                                    ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
+                                    ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{recipeContent[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
+                                    ft.Container(),
+                                    ft.Row(controls=[ft.Container(content=ft.Text(value=f"Craft Price: {craftPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
+                                    ft.Container(content=ft.Text(value=f"Sell Price: {sellRecipePrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
+                                    ft.Row(controls=[ft.FloatingActionButton(content="Craft", on_click=lambda x:craftrecipefunc(recName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellrecipefunc(recName), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
+                                    alignment=ft.MainAxisAlignment.CENTER), width=250, height=500)
+                                recipeCont.alignment=ft.Alignment.CENTER
+                                recipeContainers[d]=recipeCont
                                 recipeCont.update()
                             else:
-                                print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {recipeContainers[d][u]}")
+                                print(f"Not Found, Continuing Item Name, current: {d}, container ID: {recipeContainers[d]}")
                                 continue
-                print(f"Item Received: {recipeCont}")
+                        else:
+                            for u in h:
+                                if recipeContainers[d][u]==recipeCont:
+                                    recName=d
+                                    recSub=u
+                                    print(f"ItemExpandedName: {recName}:{recSub}, ID: {recipeContainers[d][u]}")
+                                    recipeCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
+                                    ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
+                                    ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{u.capitalize()}:\n{recipeContent[d][u]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
+                                    ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {craftPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
+                                    ft.Container(content=ft.Text(value=f"Sell Price: {sellRecipePrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
+                                    ft.Row(controls=[ft.FloatingActionButton(content="Craft", on_click=lambda x:craftrecipefunc(recName,recSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellrecipefunc(recName,recSub), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
+                                    recipeCont.alignment=ft.Alignment(0,0)
+                                    recipeContainers[d][u]=itemCont
+                                    recipeCont.update()
+                                else:
+                                    print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {recipeContainers[d][u]}")
+                                    continue
+                    print(f"Item Received: {recipeCont}")
             elif inventoryBoxExp and itemExpanded:
                 print("Item Expanded")
                 log=client.main(f"info")
-                moneyBal=log["info"].pop("money")
-                group=log['info'].pop("group")
-                recipeContent=log["info"].pop("recipes")
-                valuations=log['info'].pop('valuations')
-                workers=log['info'].pop('workers')
-                buyPrices=client.main("buyPrices")
-                sellPrices=client.main("sellPrices")
-                invenBox=log["info"]
-                inventoryBox.content=ft.Container(content=itemCont)
-                print(f"To Find: {itemCont}")
-                for d in itemContainers.keys():
-                    try:
-                        h=itemContainers[d].keys()
-                    except:
-                        if itemContainers[d]==itemCont:
-                            itName=d
-                            print(f"ItemExpandedName: {itName}, ID: {itemContainers[d]}")
-                            itemCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
-                                ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{invenBox[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
-                                ft.Container(),
-                                ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
-                                ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
-                                alignment=ft.MainAxisAlignment.CENTER), width=250, height=500)
-                            itemCont.alignment=ft.Alignment.CENTER
-                            itemContainers[d]=itemCont
-                            itemCont.update()
-                        else:
-                            print(f"Not Found, Continuing Item Name, current: {d}, container ID: {itemContainers[d]}")
-                            continue
-                    else:
-                        for u in h:
-                            if itemContainers[d][u]==itemCont:
+                if log==prevLog:
+                    return
+                else:
+                    prevLog=log
+                    moneyBal=log["info"].pop("money")
+                    group=log['info'].pop("group")
+                    recipeContent=log["info"].pop("recipes")
+                    valuations=log['info'].pop('valuations')
+                    workers=log['info'].pop('workers')
+                    buyPrices=client.main("buyPrices")
+                    sellPrices=client.main("sellPrices")
+                    invenBox=log["info"]
+                    inventoryBox.content=ft.Container(content=itemCont)
+                    print(f"To Find: {itemCont}")
+                    for d in itemContainers.keys():
+                        try:
+                            h=itemContainers[d].keys()
+                        except:
+                            if itemContainers[d]==itemCont:
                                 itName=d
-                                itSub=u
-                                print(f"ItemExpandedName: {itName}:{itSub}, ID: {itemContainers[d][u]}")
+                                print(f"ItemExpandedName: {itName}, ID: {itemContainers[d]}")
                                 itemCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
-                                ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
-                                ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{u.capitalize()}:\n{invenBox[d][u]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
-                                ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
-                                ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
-                                ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName,itSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName,itSub), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
-                                itemCont.alignment=ft.Alignment(0,0)
-                                itemContainers[d][u]=itemCont
+                                    ft.Container(content=ft.Image(src="wood.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
+                                    ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{invenBox[d]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
+                                    ft.Container(),
+                                    ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
+                                    ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
+                                    ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], 
+                                    alignment=ft.MainAxisAlignment.CENTER), width=250, height=500)
+                                itemCont.alignment=ft.Alignment.CENTER
+                                itemContainers[d]=itemCont
                                 itemCont.update()
                             else:
-                                print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {itemContainers[d][u]}")
+                                print(f"Not Found, Continuing Item Name, current: {d}, container ID: {itemContainers[d]}")
                                 continue
-                print(f"Item Received: {itemCont}")
+                        else:
+                            for u in h:
+                                if itemContainers[d][u]==itemCont:
+                                    itName=d
+                                    itSub=u
+                                    print(f"ItemExpandedName: {itName}:{itSub}, ID: {itemContainers[d][u]}")
+                                    itemCont.content=ft.Container(ft.Row(controls=[ft.Column(controls=[
+                                    ft.Container(content=ft.Image(src="icon.png", width=250, height=250), border_radius=ft.BorderRadius.all(15)),
+                                    ft.Container(content=ft.Column(controls=[ft.Text(value=f"{d.capitalize()}:\n{u.capitalize()}:\n{invenBox[d][u]}", size=13, text_align=ft.TextAlign.CENTER)]), bgcolor=ft.Colors.DEEP_PURPLE, padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(10), width=100, alignment=ft.Alignment.CENTER),
+                                    ft.Row(controls=[ft.Container(content=ft.Text(value=f"Buy Price: {buyPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.RED_700),
+                                    ft.Container(content=ft.Text(value=f"Sell Price: {sellPrices[d][u]}", text_align=ft.Alignment.CENTER), padding=ft.Padding.all(15), border_radius=ft.BorderRadius.all(15), bgcolor=ft.Colors.GREEN_700)]),
+                                    ft.Row(controls=[ft.FloatingActionButton(content="Buy", on_click=lambda x:buyfunc(itName,itSub), bgcolor=ft.Colors.RED, height=50, width=100), ft.FloatingActionButton(content="Sell", on_click=lambda x:sellfunc(itName,itSub), bgcolor=ft.Colors.GREEN, height=50, width=100)])], horizontal_alignment=ft.CrossAxisAlignment.CENTER)], alignment=ft.Alignment.CENTER),width=250, height=500)  
+                                    itemCont.alignment=ft.Alignment(0,0)
+                                    itemContainers[d][u]=itemCont
+                                    itemCont.update()
+                                else:
+                                    print(f"Not Found, Continuing Item SUB, current: {d}: {u}, container ID: {itemContainers[d][u]}")
+                                    continue
+                    print(f"Item Received: {itemCont}")
 
     async def updateInven(stop_Flag):
         while not stop_Flag.is_set():
